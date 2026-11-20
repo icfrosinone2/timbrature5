@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Timbrature</title>
+<style>
+:root{--bg:#f2f6f6;--card:#fff;--tx:#14262a;--mu:#62767b;--ac:#0f766e;--in:#15803d;--out:#c2410c;--ko:#b91c1c;--bd:#dbe5e6}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1719;--card:#172326;--tx:#e6f0f1;--mu:#93a8ac;--ac:#2dd4bf;--in:#4ade80;--out:#fb923c;--ko:#f87171;--bd:#26383c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+#app{max-width:600px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:4px 0 14px;color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px}
+.clock{font-size:46px;font-weight:700;text-align:center}
+.mu{color:var(--mu);font-size:14px}.c{text-align:center}
+button{font:inherit;border:0;border-radius:12px;padding:12px 16px;background:var(--ac);color:var(--bg);font-weight:700;cursor:pointer}
+button.big{width:100%;padding:26px;font-size:22px;color:#fff;margin-top:12px}
+button.in{background:var(--in)}button.out{background:var(--out)}
+button.g{background:transparent;color:var(--ac);border:1px solid var(--bd);padding:8px 12px}
+button:disabled{opacity:.5}
+input{font:inherit;width:100%;padding:12px;margin:6px 0;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+.msg{margin-top:12px;padding:10px;border-radius:10px;background:var(--bg);text-align:center}
+.msg.ok{color:var(--in)}.msg.ko{color:var(--ko)}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+.tabs button{background:var(--card);color:var(--tx);border:1px solid var(--bd);white-space:nowrap;padding:8px 12px}
+.tabs button.on{background:var(--ac);color:var(--bg)}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInAnonymously,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,addDoc,collection,query,orderBy,limit,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+const app=initializeApp({apiKey:"AIzaSyB-jqi4WOOKnEOYNSXawLetKK71gWGuTgY",authDomain:"timbratureclaude.firebaseapp.com",projectId:"timbratureclaude",storageBucket:"timbratureclaude.firebasestorage.app",messagingSenderId:"637719400963",appId:"1:637719400963:web:ed794b5e98ab7074c07436"});
+const auth=getAuth(app),db=getFirestore(app);
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
+
+const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[x,v]of Object.entries(a)){if(x==="class")e.className=v;else if(x.startsWith("on"))e.addEventListener(x.slice(2),v);else e.setAttribute(x,v)}e.append(...k.flat().filter(c=>c!=null));return e};
+const show=(...n)=>document.getElementById("app").replaceChildren(h("h1",{},"Timbrature"),...n);
+let un=[];const clean=()=>{un.forEach(f=>f());un=[]};
+const dt=x=>x?(x.toDate?x.toDate():new Date(x)):null;
+const fm=x=>{const d=dt(x);return d?d.toLocaleString("it-IT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"…"};
+const msg=(el,t,c)=>{el.textContent=t;el.className="msg "+(c||"");el.style.display="block"};
+const dist=(a,b,c,d)=>{const r=x=>x*Math.PI/180,p=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 12742000*Math.asin(Math.sqrt(p))};
+const pos=()=>new Promise((ok,ko)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>ok(p.coords),()=>ko(new Error("Posizione non disponibile: consenti l’accesso al GPS")),{enableHighAccuracy:true,timeout:15000}):ko(new Error("GPS non disponibile")));
+
+onAuthStateChanged(auth,async u=>{
+  clean();
+  if(!u){show(h("p",{class:"mu"},"Connessione…"));try{await signInAnonymously(auth)}catch(e){show(h("p",{class:"msg ko"},"Impossibile connettersi. Controlla internet."))}return}
+  u.isAnonymous?employee(u):admin(u);
+});
+
+/* ---------- DIPENDENTE ---------- */
+async function employee(u){
+  let sn;try{sn=await getDoc(doc(db,"staff",u.uid))}catch(e){return show(h("p",{class:"msg ko"},"Errore di connessione. Riprova."))}
+  if(!sn.exists())return reg(u);
+  const s=sn.data();
+  if(!s.active)return show(h("div",{class:"card"},"Il tuo accesso è stato disattivato. Rivolgiti al responsabile."),foot());
+  punchView(u,s);
+}
+function foot(){return h("p",{class:"c"},h("button",{class:"g",onclick:loginView},"Accesso responsabile"))}
+
+function reg(u){
+  const n=h("input",{placeholder:"Nome e cognome",autocomplete:"name"}),c=h("input",{placeholder:"Codice di accesso",autocomplete:"off"}),m=h("div",{class:"msg",style:"display:none"});
+  const b=h("button",{onclick:async()=>{
+    if(n.value.trim().length<2||!c.value.trim())return msg(m,"Scrivi nome e codice","ko");
+    b.disabled=true;
+    try{await setDoc(doc(db,"staff",u.uid),{name:n.value.trim(),code:c.value.trim(),active:true,created:serverTimestamp()});employee(u)}
+    catch(e){msg(m,"Codice non valido. Chiedilo al responsabile.","ko");b.disabled=false}
+  }},"Registrati");
+  show(h("div",{class:"card"},h("p",{},"Prima volta qui? Inserisci il tuo nome e il codice che ti ha dato il responsabile."),n,c,b,m),foot());
+}
+
+function punchView(u,s){
+  let cfg={list:[],radius:100},last=s.last||null;
+  const clk=h("div",{class:"clock"}),info=h("div",{class:"mu c"}),m=h("div",{class:"msg",style:"display:none"}),btn=h("button",{class:"big"});
+  const tick=()=>clk.textContent=new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  tick();const iv=setInterval(tick,1000);un.push(()=>clearInterval(iv));
+  const paint=()=>{const i=last&&last.type==="entrata";btn.textContent=i?"Timbra USCITA":"Timbra ENTRATA";btn.className="big "+(i?"out":"in");
+    info.textContent=last?"Ultima: "+last.type+" · "+last.site+" · "+fm(last.ts):"Nessuna timbratura ancora."};
+  paint();
+  un.push(onSnapshot(doc(db,"config","sites"),d=>{if(d.exists())cfg={list:[],radius:100,...d.data()}}));
+  btn.onclick=async()=>{
+    btn.disabled=true;msg(m,"Controllo la posizione…");
+    try{
+      if(!cfg.list.length)throw new Error("Il responsabile non ha ancora impostato i plessi");
+      const p=await pos();let best=null;
+      cfg.list.forEach(x=>{const d=dist(p.latitude,p.longitude,x.lat,x.lng);if(!best||d<best.d)best={x,d}});
+      if(best.d>cfg.radius)throw new Error("Sei a "+Math.round(best.d)+" m da "+best.x.n+". Avvicinati (massimo "+cfg.radius+" m).");
+      const type=last&&last.type==="entrata"?"uscita":"entrata";
+      await addDoc(collection(db,"punches"),{uid:u.uid,name:s.name,type,site:best.x.n,lat:p.latitude,lng:p.longitude,dist:Math.round(best.d),at:serverTimestamp()});
+      last={type,site:best.x.n,ts:Date.now()};
+      await updateDoc(doc(db,"staff",u.uid),{last});
+      paint();msg(m,"Registrata: "+type+" · "+best.x.n,"ok");
+    }catch(e){msg(m,e.code==="permission-denied"?"Non autorizzato. Contatta il responsabile.":(e.message||"Errore"),"ko")}
+    btn.disabled=false;
+  };
+  show(h("div",{class:"card"},clk,h("p",{class:"c"},s.name),btn,m,info),foot());
+}
+
+/* ---------- RESPONSABILE ---------- */
+function loginView(){
+  const e=h("input",{type:"email",placeholder:"Email",autocomplete:"username"}),p=h("input",{type:"password",placeholder:"Password",autocomplete:"current-password"}),m=h("div",{class:"msg",style:"display:none"});
+  show(h("div",{class:"card"},h("p",{},"Accesso responsabile"),e,p,
+    h("button",{onclick:async()=>{try{await signInWithEmailAndPassword(auth,e.value.trim(),p.value)}catch(x){msg(m,"Email o password errate","ko")}}},"Entra"),m,
+    h("p",{},h("button",{class:"g",onclick:()=>location.reload()},"Indietro"))));
+}
+
+function admin(u){
+  const S={staff:[],punches:[]};let cfg={list:[],radius:100},code="",cur="dentro";
+  const host=h("div"),bar=h("div",{class:"tabs"});
+  const rows=(a,f)=>a.length?a.map(f):[h("p",{class:"mu"},"Niente da mostrare.")];
+  const P={};
+
+  const l1=h("div");P.dentro={t:"Presenti",n:h("div",{class:"card"},l1),u(){const a=S.staff.filter(s=>s.active&&s.last&&s.last.type==="entrata");
+    l1.replaceChildren(h("p",{class:"mu"},a.length+" persone dentro ora"),...rows(a,s=>h("div",{class:"row"},h("b",{},s.name),h("span",{class:"mu"},s.last.site+" · dalle "+fm(s.last.ts)))))}};
+
+  const tb=h("tbody"),cn=h("span",{class:"mu"});
+  const ex=h("button",{class:"g",onclick:()=>{const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+    const csv="\ufeffData;Nome;Tipo;Plesso;Distanza m\n"+S.punches.map(p=>[(dt(p.at)||"").toLocaleString?.("it-IT"),p.name,p.type,p.site,p.dist].map(q).join(";")).join("\n");
+    const a=h("a",{href:URL.createObjectURL(new Blob([csv],{type:"text/csv"})),download:"timbrature.csv"});document.body.append(a);a.click();a.remove()}},"Esporta CSV");
+  P.log={t:"Timbrature",n:h("div",{class:"card"},h("div",{class:"row"},cn,ex),h("div",{class:"sc"},h("table",{},h("thead",{},h("tr",{},...["Data","Nome","Tipo","Plesso","m"].map(x=>h("th",{},x)))),tb))),
+    u(){cn.textContent=S.punches.length+" timbrature";tb.replaceChildren(...S.punches.map(p=>h("tr",{},...[fm(p.at),p.name,p.type,p.site,p.dist].map(v=>h("td",{},String(v??""))))))}};
+
+  const ci=h("input",{placeholder:"Codice per i nuovi arrivati"}),cm=h("div",{class:"msg",style:"display:none"}),l2=h("div");
+  P.staff={t:"Persone",n:h("div",{class:"card"},h("p",{class:"mu"},"Codice di accesso: daglielo a dipendenti e supplenti. Cambiandolo, i nuovi non potranno registrarsi con quello vecchio."),ci,
+    h("button",{onclick:async()=>{if(ci.value.trim().length<4)return msg(cm,"Almeno 4 caratteri","ko");try{await setDoc(doc(db,"config","access"),{code:ci.value.trim()});msg(cm,"Codice salvato","ok")}catch(e){msg(cm,"Errore: "+e.code,"ko")}}},"Salva codice"),cm,h("hr"),l2),
+    u(){if(document.activeElement!==ci)ci.value=code;l2.replaceChildren(...rows(S.staff.slice().sort((a,b)=>a.name.localeCompare(b.name)),s=>h("div",{class:"row"},h("span",{},s.name+(s.active?"":" (disattivato)")),
+      h("button",{class:"g",onclick:()=>updateDoc(doc(db,"staff",s.id),{active:!s.active})},s.active?"Disattiva":"Riattiva"))))}};
+
+  const sn=h("input",{placeholder:"Nome plesso (es. Plesso Centro)"}),ri=h("input",{type:"number",min:"20",placeholder:"Raggio in metri"}),sm=h("div",{class:"msg",style:"display:none"}),l3=h("div");
+  const saveCfg=(list,radius)=>setDoc(doc(db,"config","sites"),{list,radius}).catch(e=>msg(sm,"Errore: "+e.code,"ko"));
+  P.sedi={t:"Plessi",n:h("div",{class:"card"},h("p",{class:"mu"},"Vai nel plesso, scrivi il nome e premi “Salva qui”: la posizione attuale diventa la sede."),sn,
+    h("button",{onclick:async()=>{if(!sn.value.trim())return msg(sm,"Scrivi il nome","ko");if(cfg.list.length>=12)return msg(sm,"Troppi plessi","ko");
+      try{const p=await pos();await saveCfg([...cfg.list,{n:sn.value.trim(),lat:p.latitude,lng:p.longitude}],cfg.radius);sn.value="";msg(sm,"Plesso salvato","ok")}catch(e){msg(sm,e.message,"ko")}}},"Salva qui"),
+    h("p",{class:"mu"},"Raggio consentito (metri)"),ri,h("button",{class:"g",onclick:()=>saveCfg(cfg.list,Math.max(20,+ri.value||100))},"Salva raggio"),sm,h("hr"),l3),
+    u(){if(document.activeElement!==ri)ri.value=cfg.radius;l3.replaceChildren(...rows(cfg.list,(s,i)=>h("div",{class:"row"},h("span",{},(i+1)+". "+s.n),h("button",{class:"g",onclick:()=>saveCfg(cfg.list.filter((_,j)=>j!==i),cfg.radius)},"Elimina"))))}};
+
+  const upd=()=>Object.values(P).forEach(p=>p.u());
+  const go=k=>{cur=k;[...bar.children].forEach(b=>b.classList.toggle("on",b.dataset.k===cur));host.replaceChildren(P[cur].n)};
+  Object.entries(P).forEach(([k,p])=>bar.append(h("button",{"data-k":k,onclick:()=>go(k)},p.t)));
+  const deny=()=>show(h("div",{class:"card"},"Questo account non è autorizzato come responsabile."),h("p",{class:"c"},h("button",{class:"g",onclick:()=>signOut(auth)},"Esci")));
+  un.push(onSnapshot(collection(db,"staff"),s=>{S.staff=s.docs.map(d=>({id:d.id,...d.data()}));upd()},deny));
+  un.push(onSnapshot(query(collection(db,"punches"),orderBy("at","desc"),limit(300)),s=>{S.punches=s.docs.map(d=>d.data());upd()},deny));
+  un.push(onSnapshot(doc(db,"config","sites"),d=>{if(d.exists())cfg={list:[],radius:100,...d.data()};upd()},()=>{}));
+  un.push(onSnapshot(doc(db,"config","access"),d=>{code=d.exists()?d.data().code:"";upd()},()=>{}));
+  show(h("p",{class:"c"},h("button",{class:"g",onclick:()=>signOut(auth)},"Esci (responsabile)")),bar,host);go(cur);upd();
+}
+</script>
+</body>
+</html>
