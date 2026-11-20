@@ -9,87 +9,145 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Timbrature</title>
 <style>
-:root{--bg:#f2f6f6;--card:#fff;--tx:#14262a;--mu:#62767b;--ac:#0f766e;--in:#15803d;--out:#c2410c;--ko:#b91c1c;--bd:#dbe5e6}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1719;--card:#172326;--tx:#e6f0f1;--mu:#93a8ac;--ac:#2dd4bf;--in:#4ade80;--out:#fb923c;--ko:#f87171;--bd:#26383c}}
+:root{--bg:#eef3f3;--card:#fff;--tx:#10242a;--mu:#64797e;--ac:#0f766e;--ac2:#14b8a6;--in:#16a34a;--out:#ea580c;--ko:#dc2626;--bd:#e1e9ea;--sh:0 4px 18px rgba(16,36,42,.08)}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1517;--card:#162225;--tx:#e8f1f2;--mu:#8fa5a9;--ac:#14b8a6;--ac2:#2dd4bf;--bd:#243538;--sh:0 4px 18px rgba(0,0,0,.35)}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-#app{max-width:600px;margin:0 auto;padding:16px}
-h1{font-size:22px;margin:4px 0 14px;color:var(--ac)}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin-bottom:14px}
-.clock{font-size:46px;font-weight:700;text-align:center}
-.mu{color:var(--mu);font-size:14px}.c{text-align:center}
-button{font:inherit;border:0;border-radius:12px;padding:12px 16px;background:var(--ac);color:var(--bg);font-weight:700;cursor:pointer}
-button.big{width:100%;padding:26px;font-size:22px;color:#fff;margin-top:12px}
-button.in{background:var(--in)}button.out{background:var(--out)}
-button.g{background:transparent;color:var(--ac);border:1px solid var(--bd);padding:8px 12px}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:90px}
+.top{background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;padding:calc(env(safe-area-inset-top) + 16px) 18px 60px;border-radius:0 0 30px 30px}
+.row0{max-width:600px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.top h1{margin:0;font-size:22px;letter-spacing:.3px}.sub{opacity:.9;font-size:14px}
+.top button{background:rgba(255,255,255,.2);color:#fff;padding:8px 12px;font-size:13px}
+main{max-width:600px;margin:-42px auto 0;padding:0 14px}
+.card{background:var(--card);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:var(--sh)}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--mu);font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.clock{font-size:52px;font-weight:800;text-align:center;letter-spacing:1px;line-height:1.1}
+.c{text-align:center}.mu{color:var(--mu);font-size:14px}
+button{font:inherit;border:0;border-radius:14px;padding:12px 16px;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;font-weight:700;cursor:pointer}
+button.big{width:100%;padding:28px;font-size:23px;margin-top:14px;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+button.in{background:linear-gradient(135deg,#15803d,#4ade80)}button.out{background:linear-gradient(135deg,#c2410c,#fb923c)}
+button.g,button.ok,button.no{background:transparent;border:1px solid var(--bd);color:var(--ac);padding:8px 12px;font-size:14px}
+button.ok{background:var(--in);color:#fff;border:0}button.no{color:var(--ko)}
 button:disabled{opacity:.5}
-input{font:inherit;width:100%;padding:12px;margin:6px 0;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
-.msg{margin-top:12px;padding:10px;border-radius:10px;background:var(--bg);text-align:center}
+input,select,textarea{font:inherit;width:100%;padding:12px;margin:6px 0;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}
+.msg{margin-top:12px;padding:10px;border-radius:12px;background:var(--bg);text-align:center}
 .msg.ok{color:var(--in)}.msg.ko{color:var(--ko)}
-.row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)}
-.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
-.tabs button{background:var(--card);color:var(--tx);border:1px solid var(--bd);white-space:nowrap;padding:8px 12px}
-.tabs button.on{background:var(--ac);color:var(--bg)}
+.pill{display:inline-block;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:700;background:rgba(100,121,126,.15);color:var(--mu)}
+.pill.in{background:rgba(22,163,74,.15);color:var(--in)}.pill.out{background:rgba(234,88,12,.15);color:var(--out)}.pill.ko{background:rgba(220,38,38,.15);color:var(--ko)}
+.stats{display:flex;gap:10px;margin-top:14px}.stats div{flex:1;background:var(--bg);border-radius:14px;padding:12px;text-align:center}
+.stats b{display:block;font-size:20px}.stats span{font-size:12px;color:var(--mu)}
+.item{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--bd)}.item:last-child{border:0}
+.g{flex:1;min-width:0}.act{display:flex;gap:6px}
+.av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex:none}
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);display:flex;padding:6px 6px calc(env(safe-area-inset-bottom) + 6px);overflow-x:auto;box-shadow:0 -4px 18px rgba(0,0,0,.06)}
+.nav button{flex:1;min-width:62px;background:none;color:var(--mu);font-size:11px;font-weight:700;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;border-radius:10px}
+.nav button.on{color:var(--ac)}
+.bd{position:absolute;top:0;left:calc(50% + 6px);min-width:16px;height:16px;border-radius:8px;background:var(--ko);color:#fff;font-size:10px;align-items:center;justify-content:center;padding:0 4px}
 .sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
-th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+th,td{padding:8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}th{color:var(--mu);font-size:12px;text-transform:uppercase}
+.bar{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}.bar input{margin:0}
+hr{border:0;border-top:1px solid var(--bd);margin:14px 0}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div id="app"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInAnonymously,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,addDoc,collection,query,orderBy,limit,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,updateDoc,addDoc,collection,query,orderBy,limit,where,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const app=initializeApp({apiKey:"AIzaSyB-jqi4WOOKnEOYNSXawLetKK71gWGuTgY",authDomain:"timbratureclaude.firebaseapp.com",projectId:"timbratureclaude",storageBucket:"timbratureclaude.firebasestorage.app",messagingSenderId:"637719400963",appId:"1:637719400963:web:ed794b5e98ab7074c07436"});
 const auth=getAuth(app),db=getFirestore(app);
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
 
+/* ---------- utilità ---------- */
 const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[x,v]of Object.entries(a)){if(x==="class")e.className=v;else if(x.startsWith("on"))e.addEventListener(x.slice(2),v);else e.setAttribute(x,v)}e.append(...k.flat().filter(c=>c!=null));return e};
-const show=(...n)=>document.getElementById("app").replaceChildren(h("h1",{},"Timbrature"),...n);
+const IC={clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M17 4.5a3.5 3.5 0 010 7M21.5 20c0-2.5-1.5-4.5-4-5.3"/>',pin:'<path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',check:'<path d="M20 6L9 17l-5-5"/>'};
+const ic=n=>{const s=h("span");s.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+IC[n]+'</svg>';return s};
 let un=[];const clean=()=>{un.forEach(f=>f());un=[]};
 const dt=x=>x?(x.toDate?x.toDate():new Date(x)):null;
+const pt=p=>p.at?dt(p.at).getTime():Date.now();
 const fm=x=>{const d=dt(x);return d?d.toLocaleString("it-IT",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"…"};
+const hm=x=>dt(x).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+const dd=v=>new Date(v+"T00:00").toLocaleDateString("it-IT",{day:"2-digit",month:"short"});
+const mkey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+const ini=n=>(n||"?").split(/\s+/).map(x=>x[0]).slice(0,2).join("").toUpperCase();
+const fh=ms=>{const m=Math.round(ms/60000);return Math.floor(m/60)+"h "+String(m%60).padStart(2,"0")+"m"};
+const worked=(l,live)=>{let t=0,o=null;for(const p of l){const x=pt(p);if(p.type==="entrata")o=x;else if(o!=null){t+=x-o;o=null}}if(live&&o!=null)t+=Date.now()-o;return t};
+const byPerson=a=>{const g={};a.slice().sort((x,y)=>pt(x)-pt(y)).forEach(p=>{(g[p.uid]=g[p.uid]||{name:p.name,l:[]}).l.push(p)});return g};
+const days=l=>new Set(l.filter(p=>p.type==="entrata").map(p=>new Date(pt(p)).toDateString())).size;
 const msg=(el,t,c)=>{el.textContent=t;el.className="msg "+(c||"");el.style.display="block"};
 const dist=(a,b,c,d)=>{const r=x=>x*Math.PI/180,p=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 12742000*Math.asin(Math.sqrt(p))};
 const pos=()=>new Promise((ok,ko)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>ok(p.coords),()=>ko(new Error("Posizione non disponibile: consenti l’accesso al GPS")),{enableHighAccuracy:true,timeout:15000}):ko(new Error("GPS non disponibile")));
+const stLabel={"in attesa":["","In attesa"],"approvata":["in","Approvata"],"rifiutata":["ko","Rifiutata"]};
+
+/* ---------- struttura ---------- */
+function top(sub,right){return h("div",{class:"top"},h("div",{class:"row0"},h("div",{},h("h1",{},"Timbrature"),h("div",{class:"sub"},sub)),right||null))}
+function plain(sub,...n){document.getElementById("app").replaceChildren(top(sub),h("main",{},...n))}
+function shell(sub,right,T,P,start){
+  const main=h("main"),nav=h("nav",{class:"nav"}),bd={};
+  const go=k=>{[...nav.children].forEach(c=>c.classList.toggle("on",c.dataset.k===k));main.replaceChildren(P[k].n)};
+  T.forEach(t=>{const b=h("span",{class:"bd",style:"display:none"});bd[t.k]=b;nav.append(h("button",{"data-k":t.k,onclick:()=>go(t.k)},ic(t.i),t.t,b))});
+  document.getElementById("app").replaceChildren(top(sub,right),main,nav);go(start);
+  return {badge:(k,n)=>{bd[k].textContent=n;bd[k].style.display=n?"flex":"none"},upd:()=>Object.values(P).forEach(p=>p.u&&p.u())};
+}
 
 onAuthStateChanged(auth,async u=>{
   clean();
-  if(!u){show(h("p",{class:"mu"},"Connessione…"));try{await signInAnonymously(auth)}catch(e){show(h("p",{class:"msg ko"},"Impossibile connettersi. Controlla internet."))}return}
+  if(!u){plain("Connessione…");try{await signInAnonymously(auth)}catch(e){plain("Errore",h("div",{class:"card"},"Impossibile connettersi. Controlla internet."))}return}
   u.isAnonymous?employee(u):admin(u);
 });
 
 /* ---------- DIPENDENTE ---------- */
 async function employee(u){
-  let sn;try{sn=await getDoc(doc(db,"staff",u.uid))}catch(e){return show(h("p",{class:"msg ko"},"Errore di connessione. Riprova."))}
+  let sn;try{sn=await getDoc(doc(db,"staff",u.uid))}catch(e){return plain("Errore",h("div",{class:"card"},"Errore di connessione. Riprova."))}
   if(!sn.exists())return reg(u);
   const s=sn.data();
-  if(!s.active)return show(h("div",{class:"card"},"Il tuo accesso è stato disattivato. Rivolgiti al responsabile."),foot());
+  if(!s.active)return plain(s.name,h("div",{class:"card"},"Il tuo accesso è stato disattivato. Rivolgiti al responsabile."),foot());
   punchView(u,s);
 }
-function foot(){return h("p",{class:"c"},h("button",{class:"g",onclick:loginView},"Accesso responsabile"))}
+const foot=()=>h("p",{class:"c"},h("button",{class:"g",onclick:loginView},"Accesso responsabile"));
 
 function reg(u){
   const n=h("input",{placeholder:"Nome e cognome",autocomplete:"name"}),c=h("input",{placeholder:"Codice di accesso",autocomplete:"off"}),m=h("div",{class:"msg",style:"display:none"});
-  const b=h("button",{onclick:async()=>{
+  const b=h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{
     if(n.value.trim().length<2||!c.value.trim())return msg(m,"Scrivi nome e codice","ko");
     b.disabled=true;
     try{await setDoc(doc(db,"staff",u.uid),{name:n.value.trim(),code:c.value.trim(),active:true,created:serverTimestamp()});employee(u)}
     catch(e){msg(m,"Codice non valido. Chiedilo al responsabile.","ko");b.disabled=false}
   }},"Registrati");
-  show(h("div",{class:"card"},h("p",{},"Prima volta qui? Inserisci il tuo nome e il codice che ti ha dato il responsabile."),n,c,b,m),foot());
+  plain("Benvenuto",h("div",{class:"card"},h("p",{},"Prima volta qui? Inserisci il tuo nome e il codice che ti ha dato il responsabile."),n,c,b,m),foot());
 }
 
 function punchView(u,s){
-  let cfg={list:[],radius:100},last=s.last||null;
-  const clk=h("div",{class:"clock"}),info=h("div",{class:"mu c"}),m=h("div",{class:"msg",style:"display:none"}),btn=h("button",{class:"big"});
-  const tick=()=>clk.textContent=new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  let cfg={list:[],radius:100},last=s.last||null,mine=[],reqs=[];
+  const clk=h("div",{class:"clock"}),dtl=h("div",{class:"c mu"}),st=h("div",{class:"c",style:"margin-top:10px"}),btn=h("button",{class:"big"}),m=h("div",{class:"msg",style:"display:none"});
+  const sToday=h("b"),sMonth=h("b"),sDays=h("b");
+  const tick=()=>{const d=new Date();clk.textContent=d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});dtl.textContent=d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"})};
   tick();const iv=setInterval(tick,1000);un.push(()=>clearInterval(iv));
-  const paint=()=>{const i=last&&last.type==="entrata";btn.textContent=i?"Timbra USCITA":"Timbra ENTRATA";btn.className="big "+(i?"out":"in");
-    info.textContent=last?"Ultima: "+last.type+" · "+last.site+" · "+fm(last.ts):"Nessuna timbratura ancora."};
-  paint();
+  const paint=()=>{const i=last&&last.type==="entrata";
+    btn.textContent=i?"Timbra USCITA":"Timbra ENTRATA";btn.className="big "+(i?"out":"in");
+    st.replaceChildren(h("span",{class:"pill "+(i?"in":"")},i?"In servizio dalle "+hm(last.ts)+" · "+last.site:"Fuori servizio"))};
+  const P={};
+  P.t={n:h("div",{},h("div",{class:"card"},h("div",{class:"c mu"},"Ciao, "+s.name),clk,dtl,st,btn,m),
+    h("div",{class:"card"},h("h2",{},"Le tue ore"),h("div",{class:"stats"},h("div",{},sToday,h("span",{},"Oggi")),h("div",{},sMonth,h("span",{},"Questo mese")),h("div",{},sDays,h("span",{},"Giorni"))))),
+    u(){const td=new Date().toDateString();sToday.textContent=fh(worked(mine.filter(p=>new Date(pt(p)).toDateString()===td),true));sMonth.textContent=fh(worked(mine,true));sDays.textContent=days(mine)}};
+  const hl=h("div");
+  P.s={n:h("div",{class:"card"},h("h2",{},"Timbrature del mese"),hl),u(){hl.replaceChildren(...(mine.length?mine.slice().sort((a,b)=>pt(b)-pt(a)).map(p=>h("div",{class:"item"},h("span",{class:"pill "+(p.type==="entrata"?"in":"out")},p.type),h("div",{class:"g"},h("b",{},p.site),h("div",{class:"mu"},fm(p.at)))
+    )):[h("p",{class:"mu"},"Ancora nessuna timbratura questo mese.")]))}};
+  const rt=h("select",{},...["Ferie","Permesso","Malattia","Altro"].map(x=>h("option",{},x))),rf=h("input",{type:"date"}),rto=h("input",{type:"date"}),rn=h("input",{placeholder:"Note (facoltative)",maxlength:"250"}),rm=h("div",{class:"msg",style:"display:none"}),rl=h("div");
+  P.r={n:h("div",{},h("div",{class:"card"},h("h2",{},"Nuova richiesta"),rt,h("div",{class:"mu"},"Dal"),rf,h("div",{class:"mu"},"Al"),rto,rn,
+    h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{
+      if(!rf.value||!rto.value||rto.value<rf.value)return msg(rm,"Controlla le date","ko");
+      try{await addDoc(collection(db,"requests"),{uid:u.uid,name:s.name,type:rt.value,from:rf.value,to:rto.value,note:rn.value.trim(),status:"in attesa",at:serverTimestamp()});rn.value="";msg(rm,"Richiesta inviata","ok")}
+      catch(e){msg(rm,"Errore nell’invio","ko")}}},"Invia richiesta"),rm),
+    h("div",{class:"card"},h("h2",{},"Le tue richieste"),rl)),
+    u(){rl.replaceChildren(...(reqs.length?reqs.slice().sort((a,b)=>pt(b)-pt(a)).map(r=>{const[c,t]=stLabel[r.status]||["",r.status];return h("div",{class:"item"},h("div",{class:"g"},h("b",{},r.type),h("div",{class:"mu"},dd(r.from)+(r.to!==r.from?" → "+dd(r.to):""))),h("span",{class:"pill "+c},t))}):[h("p",{class:"mu"},"Nessuna richiesta.")]))}};
+  const sh=shell(s.name,h("button",{onclick:loginView},"Responsabile"),[{k:"t",t:"Timbra",i:"clock"},{k:"s",t:"Storico",i:"list"},{k:"r",t:"Richieste",i:"cal"}],P,"t");
+  paint();sh.upd();
   un.push(onSnapshot(doc(db,"config","sites"),d=>{if(d.exists())cfg={list:[],radius:100,...d.data()}}));
+  un.push(onSnapshot(query(collection(db,"punches"),where("uid","==",u.uid),where("m","==",mkey(new Date()))),x=>{mine=x.docs.map(d=>d.data());sh.upd()}));
+  un.push(onSnapshot(query(collection(db,"requests"),where("uid","==",u.uid)),x=>{reqs=x.docs.map(d=>d.data());sh.upd()}));
   btn.onclick=async()=>{
     btn.disabled=true;msg(m,"Controllo la posizione…");
     try{
@@ -98,63 +156,79 @@ function punchView(u,s){
       cfg.list.forEach(x=>{const d=dist(p.latitude,p.longitude,x.lat,x.lng);if(!best||d<best.d)best={x,d}});
       if(best.d>cfg.radius)throw new Error("Sei a "+Math.round(best.d)+" m da "+best.x.n+". Avvicinati (massimo "+cfg.radius+" m).");
       const type=last&&last.type==="entrata"?"uscita":"entrata";
-      await addDoc(collection(db,"punches"),{uid:u.uid,name:s.name,type,site:best.x.n,lat:p.latitude,lng:p.longitude,dist:Math.round(best.d),at:serverTimestamp()});
+      await addDoc(collection(db,"punches"),{uid:u.uid,name:s.name,type,site:best.x.n,lat:p.latitude,lng:p.longitude,dist:Math.round(best.d),m:mkey(new Date()),at:serverTimestamp()});
       last={type,site:best.x.n,ts:Date.now()};
       await updateDoc(doc(db,"staff",u.uid),{last});
       paint();msg(m,"Registrata: "+type+" · "+best.x.n,"ok");
     }catch(e){msg(m,e.code==="permission-denied"?"Non autorizzato. Contatta il responsabile.":(e.message||"Errore"),"ko")}
     btn.disabled=false;
   };
-  show(h("div",{class:"card"},clk,h("p",{class:"c"},s.name),btn,m,info),foot());
 }
 
 /* ---------- RESPONSABILE ---------- */
 function loginView(){
   const e=h("input",{type:"email",placeholder:"Email",autocomplete:"username"}),p=h("input",{type:"password",placeholder:"Password",autocomplete:"current-password"}),m=h("div",{class:"msg",style:"display:none"});
-  show(h("div",{class:"card"},h("p",{},"Accesso responsabile"),e,p,
-    h("button",{onclick:async()=>{try{await signInWithEmailAndPassword(auth,e.value.trim(),p.value)}catch(x){msg(m,"Email o password errate","ko")}}},"Entra"),m,
-    h("p",{},h("button",{class:"g",onclick:()=>location.reload()},"Indietro"))));
+  plain("Accesso responsabile",h("div",{class:"card"},e,p,
+    h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{try{await signInWithEmailAndPassword(auth,e.value.trim(),p.value)}catch(x){msg(m,"Email o password errate","ko")}}},"Entra"),m,
+    h("p",{class:"c"},h("button",{class:"g",onclick:()=>location.reload()},"Indietro"))));
 }
 
 function admin(u){
-  const S={staff:[],punches:[]};let cfg={list:[],radius:100},code="",cur="dentro";
-  const host=h("div"),bar=h("div",{class:"tabs"});
+  const S={staff:[],punches:[],reqs:[]};let cfg={list:[],radius:100},code="",mon=mkey(new Date());
   const rows=(a,f)=>a.length?a.map(f):[h("p",{class:"mu"},"Niente da mostrare.")];
-  const P={};
+  const P={},mi=[];let unP=()=>{};
+  const monthInput=()=>{const i=h("input",{type:"month",value:mon,onchange:()=>{mon=i.value||mkey(new Date());mi.forEach(x=>x.value=mon);subP()}});mi.push(i);return i};
+  const subP=()=>{unP();unP=onSnapshot(query(collection(db,"punches"),where("m","==",mon)),s=>{S.punches=s.docs.map(d=>d.data());sh.upd()},deny)};
+  un.push(()=>unP());
 
-  const l1=h("div");P.dentro={t:"Presenti",n:h("div",{class:"card"},l1),u(){const a=S.staff.filter(s=>s.active&&s.last&&s.last.type==="entrata");
-    l1.replaceChildren(h("p",{class:"mu"},a.length+" persone dentro ora"),...rows(a,s=>h("div",{class:"row"},h("b",{},s.name),h("span",{class:"mu"},s.last.site+" · dalle "+fm(s.last.ts)))))}};
+  const l1=h("div");P.p={n:h("div",{class:"card"},h("h2",{},"Presenti ora"),l1),u(){const a=S.staff.filter(s=>s.active&&s.last&&s.last.type==="entrata");
+    l1.replaceChildren(h("p",{class:"mu"},a.length+" persone in servizio"),...a.map(s=>h("div",{class:"item"},h("div",{class:"av"},ini(s.name)),h("div",{class:"g"},h("b",{},s.name),h("div",{class:"mu"},s.last.site+" · dalle "+hm(s.last.ts))),h("span",{class:"pill in"},"dentro"))))}};
+
+  const lr=h("div");P.r={n:h("div",{class:"card"},h("h2",{},"Ferie e permessi"),lr),u(){
+    const pend=S.reqs.filter(r=>r.status==="in attesa"),done=S.reqs.filter(r=>r.status!=="in attesa");sh.badge("r",pend.length);
+    const card=(r,x)=>h("div",{class:"item"},h("div",{class:"av"},ini(r.name)),h("div",{class:"g"},h("b",{},r.name),h("div",{class:"mu"},r.type+" · "+dd(r.from)+(r.to!==r.from?" → "+dd(r.to):"")),r.note?h("div",{class:"mu"},r.note):null),x);
+    lr.replaceChildren(h("p",{class:"mu"},pend.length+" da gestire"),...pend.map(r=>card(r,h("div",{class:"act"},h("button",{class:"ok",onclick:()=>upd(r,"approvata")},"Sì"),h("button",{class:"no",onclick:()=>upd(r,"rifiutata")},"No")))),
+      done.length?h("hr"):null,...done.slice(0,30).map(r=>{const[c,t]=stLabel[r.status];return card(r,h("span",{class:"pill "+c},t))}))}};
+  const upd=(r,s)=>updateDoc(doc(db,"requests",r.id),{status:s});
 
   const tb=h("tbody"),cn=h("span",{class:"mu"});
-  const ex=h("button",{class:"g",onclick:()=>{const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
-    const csv="\ufeffData;Nome;Tipo;Plesso;Distanza m\n"+S.punches.map(p=>[(dt(p.at)||"").toLocaleString?.("it-IT"),p.name,p.type,p.site,p.dist].map(q).join(";")).join("\n");
-    const a=h("a",{href:URL.createObjectURL(new Blob([csv],{type:"text/csv"})),download:"timbrature.csv"});document.body.append(a);a.click();a.remove()}},"Esporta CSV");
-  P.log={t:"Timbrature",n:h("div",{class:"card"},h("div",{class:"row"},cn,ex),h("div",{class:"sc"},h("table",{},h("thead",{},h("tr",{},...["Data","Nome","Tipo","Plesso","m"].map(x=>h("th",{},x)))),tb))),
-    u(){cn.textContent=S.punches.length+" timbrature";tb.replaceChildren(...S.punches.map(p=>h("tr",{},...[fm(p.at),p.name,p.type,p.site,p.dist].map(v=>h("td",{},String(v??""))))))}};
+  P.t={n:h("div",{class:"card"},h("h2",{},"Timbrature"),h("div",{class:"bar"},monthInput(),h("button",{onclick:exportXlsx},"Excel")),cn,h("div",{class:"sc"},h("table",{},h("thead",{},h("tr",{},...["Data","Nome","Tipo","Plesso","m"].map(x=>h("th",{},x)))),tb))),
+    u(){const a=S.punches.slice().sort((x,y)=>pt(y)-pt(x));cn.textContent=a.length+" timbrature";tb.replaceChildren(...a.map(p=>h("tr",{},...[fm(p.at),p.name,p.type,p.site,p.dist].map(v=>h("td",{},String(v??""))))))}};
+
+  const ob=h("tbody");
+  P.o={n:h("div",{class:"card"},h("h2",{},"Ore del mese"),h("div",{class:"bar"},monthInput(),h("button",{onclick:exportXlsx},"Excel")),h("div",{class:"sc"},h("table",{},h("thead",{},h("tr",{},...["Nome","Giorni","Ore"].map(x=>h("th",{},x)))),ob))),
+    u(){const g=Object.values(byPerson(S.punches)).sort((a,b)=>a.name.localeCompare(b.name));ob.replaceChildren(...g.map(x=>h("tr",{},h("td",{},x.name),h("td",{},String(days(x.l))),h("td",{},fh(worked(x.l,false))))))}};
+
+  function exportXlsx(){
+    if(!window.XLSX)return alert("Esportazione non disponibile: controlla la connessione");
+    const a=S.punches.slice().sort((x,y)=>pt(x)-pt(y)),wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Data e ora","Nome","Tipo","Plesso","Distanza (m)"],...a.map(p=>[new Date(pt(p)).toLocaleString("it-IT"),p.name,p.type,p.site,p.dist])]),"Timbrature");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Nome","Giorni","Ore"],...Object.values(byPerson(a)).map(x=>[x.name,days(x.l),+(worked(x.l,false)/3600000).toFixed(2)])]),"Ore mensili");
+    XLSX.writeFile(wb,"timbrature-"+mon+".xlsx");
+  }
 
   const ci=h("input",{placeholder:"Codice per i nuovi arrivati"}),cm=h("div",{class:"msg",style:"display:none"}),l2=h("div");
-  P.staff={t:"Persone",n:h("div",{class:"card"},h("p",{class:"mu"},"Codice di accesso: daglielo a dipendenti e supplenti. Cambiandolo, i nuovi non potranno registrarsi con quello vecchio."),ci,
-    h("button",{onclick:async()=>{if(ci.value.trim().length<4)return msg(cm,"Almeno 4 caratteri","ko");try{await setDoc(doc(db,"config","access"),{code:ci.value.trim()});msg(cm,"Codice salvato","ok")}catch(e){msg(cm,"Errore: "+e.code,"ko")}}},"Salva codice"),cm,h("hr"),l2),
-    u(){if(document.activeElement!==ci)ci.value=code;l2.replaceChildren(...rows(S.staff.slice().sort((a,b)=>a.name.localeCompare(b.name)),s=>h("div",{class:"row"},h("span",{},s.name+(s.active?"":" (disattivato)")),
+  P.s={n:h("div",{class:"card"},h("h2",{},"Persone"),h("p",{class:"mu"},"Codice di accesso per dipendenti e supplenti. Cambiandolo, i nuovi non potranno registrarsi con quello vecchio."),ci,
+    h("button",{onclick:async()=>{if(ci.value.trim().length<4)return msg(cm,"Almeno 4 caratteri","ko");try{await setDoc(doc(db,"config","access"),{code:ci.value.trim()});msg(cm,"Codice salvato","ok")}catch(e){msg(cm,"Errore: "+e.code,"ko")}}},"Salva codice"),cm,hr(),l2),
+    u(){if(document.activeElement!==ci)ci.value=code;l2.replaceChildren(...rows(S.staff.slice().sort((a,b)=>a.name.localeCompare(b.name)),s=>h("div",{class:"item"},h("div",{class:"av"},ini(s.name)),h("div",{class:"g"},h("b",{},s.name),s.active?null:h("div",{class:"mu"},"disattivato")),
       h("button",{class:"g",onclick:()=>updateDoc(doc(db,"staff",s.id),{active:!s.active})},s.active?"Disattiva":"Riattiva"))))}};
+  function hr(){return h("hr")}
 
   const sn=h("input",{placeholder:"Nome plesso (es. Plesso Centro)"}),ri=h("input",{type:"number",min:"20",placeholder:"Raggio in metri"}),sm=h("div",{class:"msg",style:"display:none"}),l3=h("div");
   const saveCfg=(list,radius)=>setDoc(doc(db,"config","sites"),{list,radius}).catch(e=>msg(sm,"Errore: "+e.code,"ko"));
-  P.sedi={t:"Plessi",n:h("div",{class:"card"},h("p",{class:"mu"},"Vai nel plesso, scrivi il nome e premi “Salva qui”: la posizione attuale diventa la sede."),sn,
+  P.d={n:h("div",{class:"card"},h("h2",{},"Plessi"),h("p",{class:"mu"},"Vai nel plesso, scrivi il nome e premi “Salva qui”: la posizione attuale diventa la sede."),sn,
     h("button",{onclick:async()=>{if(!sn.value.trim())return msg(sm,"Scrivi il nome","ko");if(cfg.list.length>=12)return msg(sm,"Troppi plessi","ko");
       try{const p=await pos();await saveCfg([...cfg.list,{n:sn.value.trim(),lat:p.latitude,lng:p.longitude}],cfg.radius);sn.value="";msg(sm,"Plesso salvato","ok")}catch(e){msg(sm,e.message,"ko")}}},"Salva qui"),
-    h("p",{class:"mu"},"Raggio consentito (metri)"),ri,h("button",{class:"g",onclick:()=>saveCfg(cfg.list,Math.max(20,+ri.value||100))},"Salva raggio"),sm,h("hr"),l3),
-    u(){if(document.activeElement!==ri)ri.value=cfg.radius;l3.replaceChildren(...rows(cfg.list,(s,i)=>h("div",{class:"row"},h("span",{},(i+1)+". "+s.n),h("button",{class:"g",onclick:()=>saveCfg(cfg.list.filter((_,j)=>j!==i),cfg.radius)},"Elimina"))))}};
+    h("p",{class:"mu"},"Raggio consentito (metri)"),ri,h("button",{class:"g",onclick:()=>saveCfg(cfg.list,Math.max(20,+ri.value||100))},"Salva raggio"),sm,hr(),l3),
+    u(){if(document.activeElement!==ri)ri.value=cfg.radius;l3.replaceChildren(...rows(cfg.list,(s,i)=>h("div",{class:"item"},h("div",{class:"g"},(i+1)+". "+s.n),h("button",{class:"g",onclick:()=>saveCfg(cfg.list.filter((_,j)=>j!==i),cfg.radius)},"Elimina"))))}};
 
-  const upd=()=>Object.values(P).forEach(p=>p.u());
-  const go=k=>{cur=k;[...bar.children].forEach(b=>b.classList.toggle("on",b.dataset.k===cur));host.replaceChildren(P[cur].n)};
-  Object.entries(P).forEach(([k,p])=>bar.append(h("button",{"data-k":k,onclick:()=>go(k)},p.t)));
-  const deny=()=>show(h("div",{class:"card"},"Questo account non è autorizzato come responsabile."),h("p",{class:"c"},h("button",{class:"g",onclick:()=>signOut(auth)},"Esci")));
-  un.push(onSnapshot(collection(db,"staff"),s=>{S.staff=s.docs.map(d=>({id:d.id,...d.data()}));upd()},deny));
-  un.push(onSnapshot(query(collection(db,"punches"),orderBy("at","desc"),limit(300)),s=>{S.punches=s.docs.map(d=>d.data());upd()},deny));
-  un.push(onSnapshot(doc(db,"config","sites"),d=>{if(d.exists())cfg={list:[],radius:100,...d.data()};upd()},()=>{}));
-  un.push(onSnapshot(doc(db,"config","access"),d=>{code=d.exists()?d.data().code:"";upd()},()=>{}));
-  show(h("p",{class:"c"},h("button",{class:"g",onclick:()=>signOut(auth)},"Esci (responsabile)")),bar,host);go(cur);upd();
+  const deny=()=>plain("Accesso negato",h("div",{class:"card"},"Questo account non è autorizzato come responsabile."),h("p",{class:"c"},h("button",{class:"g",onclick:()=>signOut(auth)},"Esci")));
+  const sh=shell("Responsabile",h("button",{onclick:()=>signOut(auth)},"Esci"),[{k:"p",t:"Presenti",i:"check"},{k:"r",t:"Richieste",i:"cal"},{k:"t",t:"Timbrature",i:"list"},{k:"o",t:"Ore",i:"chart"},{k:"s",t:"Persone",i:"users"},{k:"d",t:"Plessi",i:"pin"}],P,"p");
+  un.push(onSnapshot(collection(db,"staff"),s=>{S.staff=s.docs.map(d=>({id:d.id,...d.data()}));sh.upd()},deny));
+  un.push(onSnapshot(query(collection(db,"requests"),orderBy("at","desc"),limit(200)),s=>{S.reqs=s.docs.map(d=>({id:d.id,...d.data()}));sh.upd()},deny));
+  un.push(onSnapshot(doc(db,"config","sites"),d=>{if(d.exists())cfg={list:[],radius:100,...d.data()};sh.upd()},()=>{}));
+  un.push(onSnapshot(doc(db,"config","access"),d=>{code=d.exists()?d.data().code:"";sh.upd()},()=>{}));
+  subP();
 }
 </script>
 </body>
