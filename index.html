@@ -52,15 +52,27 @@ hr{border:0;border-top:1px solid var(--bd);margin:14px 0}
 .tf{background:#0f766e}.tp{background:#ea580c}.tm{background:#dc2626}.tx{background:#64797e}
 .bp{max-width:96px;max-height:96px;display:block;margin:6px 0;border-radius:10px}
 .pill.w{background:rgba(234,88,12,.18);color:var(--out)}
+.kv{width:100%;max-height:48vh;border-radius:16px;background:#000;object-fit:cover}
+.kbox{margin-top:12px;padding:18px;border-radius:16px;text-align:center;font-size:20px;font-weight:800;background:var(--bg)}
+.kbox.in{background:rgba(22,163,74,.2);color:var(--in)}.kbox.out{background:rgba(234,88,12,.2);color:var(--out)}.kbox.ko{background:rgba(220,38,38,.18);color:var(--ko)}
+.tg{display:flex;gap:8px;margin:8px 0}.tg button{flex:1;background:var(--bg);color:var(--tx);border:1px solid var(--bd)}.tg button.on{background:var(--ac);color:#fff;border:0}
+.pos{color:var(--in);font-weight:700}.neg{color:var(--ko);font-weight:700}.rowl{cursor:pointer}
+#pa{display:none}
+.badge{display:inline-block;vertical-align:top;width:85mm;height:54mm;border:1px solid #000;border-radius:3mm;margin:2mm;padding:3mm;box-sizing:border-box;position:relative;background:#fff;color:#000;break-inside:avoid;font-family:system-ui,sans-serif}
+.badge .bh{display:flex;gap:2mm;align-items:center;font-size:11pt}.badge .bh img{height:10mm}
+.badge .nm{font-size:14pt;font-weight:800;margin-top:4mm;max-width:46mm}.badge .ql{font-size:9pt;color:#333;max-width:46mm}.badge .qr{position:absolute;right:3mm;bottom:3mm}
+@media print{body>*:not(#pa){display:none!important}#pa{display:block;color:#000;background:#fff}body{background:#fff;padding:0}table.pt{width:100%;border-collapse:collapse;font-size:10pt}table.pt th,table.pt td{border:1px solid #000;padding:4px 6px;color:#000;white-space:normal}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 <div id="app"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInAnonymously,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,addDoc,Timestamp,collection,query,orderBy,limit,where,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,getDocs,setDoc,updateDoc,deleteDoc,addDoc,Timestamp,collection,query,orderBy,limit,where,onSnapshot,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 const app=initializeApp({apiKey:"AIzaSyB-jqi4WOOKnEOYNSXawLetKK71gWGuTgY",authDomain:"timbratureclaude.firebaseapp.com",projectId:"timbratureclaude",storageBucket:"timbratureclaude.firebasestorage.app",messagingSenderId:"637719400963",appId:"1:637719400963:web:ed794b5e98ab7074c07436"});
 const auth=getAuth(app),db=getFirestore(app);
@@ -68,7 +80,7 @@ if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
 
 /* ---------- utilità ---------- */
 const h=(t,a={},...k)=>{const e=document.createElement(t);for(const[x,v]of Object.entries(a)){if(x==="class")e.className=v;else if(x.startsWith("on"))e.addEventListener(x.slice(2),v);else e.setAttribute(x,v)}e.append(...k.flat().filter(c=>c!=null));return e};
-const IC={clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M17 4.5a3.5 3.5 0 010 7M21.5 20c0-2.5-1.5-4.5-4-5.3"/>',pin:'<path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',check:'<path d="M20 6L9 17l-5-5"/>'};
+const IC={clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6M17 4.5a3.5 3.5 0 010 7M21.5 20c0-2.5-1.5-4.5-4-5.3"/>',pin:'<path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',check:'<path d="M20 6L9 17l-5-5"/>',cam:'<path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'};
 const ic=n=>{const s=h("span");s.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+IC[n]+'</svg>';return s};
 let un=[];const clean=()=>{un.forEach(f=>f());un=[]};
 const dt=x=>x?(x.toDate?x.toDate():new Date(x)):null;
@@ -88,17 +100,17 @@ const pos=()=>new Promise((ok,ko)=>navigator.geolocation?navigator.geolocation.g
 const stLabel={"in attesa":["","In attesa"],"approvata":["in","Approvata"],"rifiutata":["ko","Rifiutata"]};
 
 /* ---------- struttura ---------- */
-function top(sub,right){return h("div",{class:"top"},h("div",{class:"row0"},h("div",{style:"display:flex;gap:10px;align-items:center"},h("img",{class:"bl",style:"display:none",alt:""}),h("div",{},h("h1",{class:"bn"},brand.name||"Timbrature"),h("div",{class:"sub"},sub+" · v3"))),right||null))}
+function top(sub,right){return h("div",{class:"top"},h("div",{class:"row0"},h("div",{style:"display:flex;gap:10px;align-items:center"},h("img",{class:"bl",style:"display:none",alt:""}),h("div",{},h("h1",{class:"bn"},brand.name||"Timbrature"),h("div",{class:"sub"},sub+" · v4"))),right||null))}
 function plain(sub,...n){document.getElementById("app").replaceChildren(top(sub),h("main",{},...n));applyBrand()}
 function shell(sub,right,T,P,start){
   const main=h("main"),nav=h("nav",{class:"nav"}),bd={};
-  const go=k=>{[...nav.children].forEach(c=>c.classList.toggle("on",c.dataset.k===k));main.replaceChildren(P[k].n)};
+  let cur=null;const go=k=>{if(cur&&P[cur]&&P[cur].l)P[cur].l();cur=k;[...nav.children].forEach(c=>c.classList.toggle("on",c.dataset.k===k));main.replaceChildren(P[k].n)};
   T.forEach(t=>{const b=h("span",{class:"bd",style:"display:none"});bd[t.k]=b;nav.append(h("button",{"data-k":t.k,onclick:()=>go(t.k)},ic(t.i),t.t,b))});
   document.getElementById("app").replaceChildren(top(sub,right),main,nav);go(start);applyBrand();
   return {go,badge:(k,n)=>{bd[k].textContent=n;bd[k].style.display=n?"flex":"none"},upd:()=>Object.values(P).forEach(p=>p.u&&p.u())};
 }
 
-let brand={};
+let brand={},HOL=new Map(),HOLL=[];
 function applyBrand(){const r=document.documentElement.style,c=brand.color;
   if(c){r.setProperty("--ac",c);r.setProperty("--ac2","color-mix(in srgb, "+c+" 65%, #ffffff)")}else{r.removeProperty("--ac");r.removeProperty("--ac2")}
   document.querySelector("meta[name=theme-color]").content=c||"#0f766e";
@@ -107,6 +119,7 @@ function applyBrand(){const r=document.documentElement.style,c=brand.color;
 onAuthStateChanged(auth,async u=>{
   clean();
   if(!u){plain("Connessione…");try{await signInAnonymously(auth)}catch(e){plain("Errore",h("div",{class:"card"},"Impossibile connettersi. Controlla internet."))}return}
+  un.push(onSnapshot(doc(db,"config","holidays"),d=>{HOLL=d.exists()?(d.data().days||[]):[];HOL=new Map(HOLL.map(x=>[x.d,x.n]));if(window.__h)window.__h()},()=>{}));
   un.push(onSnapshot(doc(db,"config","brand"),d=>{brand=d.exists()?d.data():{};applyBrand()},()=>{}));
   u.isAnonymous?employee(u):admin(u);
 });
@@ -148,14 +161,15 @@ function punchView(u,s){
   const hl=h("div");
   P.s={n:h("div",{class:"card"},h("h2",{},"Timbrature del mese"),hl),u(){hl.replaceChildren(...(mine.length?mine.slice().sort((a,b)=>pt(b)-pt(a)).map(p=>h("div",{class:"item"},h("span",{class:"pill "+(p.type==="entrata"?"in":"out")},p.type),h("div",{class:"g"},h("b",{},p.site),h("div",{class:"mu"},fm(p.at)))
     )):[h("p",{class:"mu"},"Ancora nessuna timbratura questo mese.")]))}};
-  const rt=h("select",{},...["Ferie","Permesso","Malattia","Altro"].map(x=>h("option",{},x))),rf=h("input",{type:"date"}),rto=h("input",{type:"date"}),rn=h("input",{placeholder:"Note (facoltative)",maxlength:"250"}),rm=h("div",{class:"msg",style:"display:none"}),rl=h("div");
-  P.r={n:h("div",{},h("div",{class:"card"},h("h2",{},"Nuova richiesta"),rt,h("div",{class:"mu"},"Dal"),rf,h("div",{class:"mu"},"Al"),rto,rn,
+  const fer=h("p",{class:"mu"}),rt=h("select",{},...["Ferie","Permesso","Malattia","Altro"].map(x=>h("option",{},x))),rf=h("input",{type:"date"}),rto=h("input",{type:"date"}),rn=h("input",{placeholder:"Note (facoltative)",maxlength:"250"}),rm=h("div",{class:"msg",style:"display:none"}),rl=h("div");
+  P.r={n:h("div",{},h("div",{class:"card"},h("h2",{},"Le tue ferie"),fer),h("div",{class:"card"},h("h2",{},"Nuova richiesta"),rt,h("div",{class:"mu"},"Dal"),rf,h("div",{class:"mu"},"Al"),rto,rn,
     h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{
       if(!rf.value||!rto.value||rto.value<rf.value)return msg(rm,"Controlla le date","ko");
       try{await addDoc(collection(db,"requests"),{uid:u.uid,name:s.name,type:rt.value,from:rf.value,to:rto.value,note:rn.value.trim(),status:"in attesa",at:serverTimestamp()});rn.value="";msg(rm,"Richiesta inviata","ok")}
       catch(e){msg(rm,"Errore nell’invio","ko")}}},"Invia richiesta"),rm),
     h("div",{class:"card"},h("h2",{},"Le tue richieste"),rl)),
-    u(){rl.replaceChildren(...(reqs.length?reqs.slice().sort((a,b)=>pt(b)-pt(a)).map(r=>{const[c,t]=stLabel[r.status]||["",r.status];return h("div",{class:"item"},h("div",{class:"g"},h("b",{},r.type),h("div",{class:"mu"},dd(r.from)+(r.to!==r.from?" → "+dd(r.to):""))),h("span",{class:"pill "+c},t))}):[h("p",{class:"mu"},"Nessuna richiesta.")]))}};
+    u(){if(s.ferieSp!=null||s.ferieRes!=null){const g=ferieDays({...s,id:u.uid},reqs,new Date().getFullYear());fer.textContent=(s.ferieSp||0)+" spettanti + "+(s.ferieRes||0)+" residue anno precedente − "+g+" godute = "+((s.ferieSp||0)+(s.ferieRes||0)-g)+" giorni restanti"}else fer.textContent="Non ancora impostate dal responsabile.";
+      rl.replaceChildren(...(reqs.length?reqs.slice().sort((a,b)=>pt(b)-pt(a)).map(r=>{const[c,t]=stLabel[r.status]||["",r.status];return h("div",{class:"item"},h("div",{class:"g"},h("b",{},r.type),h("div",{class:"mu"},dd(r.from)+(r.to!==r.from?" → "+dd(r.to):""))),h("span",{class:"pill "+c},t))}):[h("p",{class:"mu"},"Nessuna richiesta.")]))}};
   const sh=shell(s.name,h("button",{onclick:loginView},"Responsabile"),[{k:"t",t:"Timbra",i:"clock"},{k:"s",t:"Storico",i:"list"},{k:"r",t:"Richieste",i:"cal"}],P,"t");
   paint();sh.upd();
   un.push(onSnapshot(doc(db,"config","sites"),d=>{if(d.exists())cfg={list:[],radius:100,...d.data()}}));
@@ -169,7 +183,7 @@ function punchView(u,s){
       cfg.list.forEach(x=>{const d=dist(p.latitude,p.longitude,x.lat,x.lng);if(!best||d<best.d)best={x,d}});
       if(best.d>cfg.radius)throw new Error("Sei a "+Math.round(best.d)+" m da "+best.x.n+". Avvicinati (massimo "+cfg.radius+" m).");
       const type=last&&last.type==="entrata"?"uscita":"entrata";
-      await addDoc(collection(db,"punches"),{uid:u.uid,name:s.name,type,site:best.x.n,lat:p.latitude,lng:p.longitude,dist:Math.round(best.d),m:mkey(new Date()),at:serverTimestamp()});
+      await addDoc(collection(db,"punches"),{uid:u.uid,name:s.name,type,site:best.x.n,lat:p.latitude,lng:p.longitude,dist:Math.round(best.d),src:"telefono",m:mkey(new Date()),at:serverTimestamp()});
       last={type,site:best.x.n,ts:Date.now()};
       await updateDoc(doc(db,"staff",u.uid),{last});
       paint();msg(m,"Registrata: "+type+" · "+best.x.n,"ok");
@@ -187,58 +201,106 @@ function loginView(){
 }
 
 const TOL=5,MAXH=10,TY={Ferie:"f",Permesso:"p",Malattia:"m"};
+const QUAL=["DSGA","Assistente Amministrativo","Assistente Tecnico","Collaboratore Scolastico"];
+const NOM=["Tempo indeterminato","Supplente Annuale al 31 agosto","Supplente Annuale al 30 giugno","Supplente breve e saltuario"];
+const GG=["Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+const ls={g:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 const tbl=(c,b)=>h("table",{},h("thead",{},h("tr",{},...c.map(x=>h("th",{},x)))),b);
+const fhs=ms=>(ms<0?"−":"+")+fh(Math.abs(ms));
+const num=v=>v===""||v==null?null:+v;
+const wd=d=>d.getDay()||7;
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const tm=x=>{const[a,b]=x.split(":");return +a*60+ +b};
+const rng=(a,b)=>a&&b&&tm(b)>tm(a)?tm(b)-tm(a):0;
+const dayMin=d=>d?rng(d.a,d.b)+rng(d.c,d.d):0;
+function expected(st,reqs,from,to){
+  let due=0,abs=0;
+  for(let d=new Date(from);ymd(d)<=ymd(to);d.setDate(d.getDate()+1)){
+    const k=ymd(d);if(HOL.has(k))continue;
+    const m=dayMin(st.sched&&st.sched[wd(d)]);if(!m)continue;
+    if(reqs.some(r=>r.uid===st.id&&r.status==="approvata"&&r.from<=k&&k<=r.to))abs+=m;else due+=m;
+  }
+  return {due:due*60000,abs:abs*60000};
+}
+function ferieDays(st,reqs,year){
+  let n=0;const has=st.sched&&Object.keys(st.sched).length;
+  reqs.filter(r=>r.uid===st.id&&r.status==="approvata"&&r.type==="Ferie").forEach(r=>{
+    for(let d=new Date(r.from+"T00:00");ymd(d)<=r.to;d.setDate(d.getDate()+1)){
+      if(d.getFullYear()!==year||HOL.has(ymd(d)))continue;
+      if(has?dayMin(st.sched[wd(d)])>0:wd(d)<=5)n++;
+    }});
+  return n;
+}
+const monthsOf=(a,b)=>{const r=[];for(let d=new Date(a.getFullYear(),a.getMonth(),1);d<=b;d.setMonth(d.getMonth()+1))r.push(mkey(d));return r};
+async function loadMonths(months,uid){
+  const rs=await Promise.all(months.map(m=>getDocs(uid?query(collection(db,"punches"),where("uid","==",uid),where("m","==",m)):query(collection(db,"punches"),where("m","==",m)))));
+  return rs.flatMap(r=>r.docs.map(d=>({id:d.id,...d.data()})));
+}
 function dayStats(l,sc){
-  const r={late:0,lateMin:0,early:0,earlyMin:0,over:0};if(!sc||!sc.s||!sc.e)return r;
+  const r={late:0,lateMin:0,early:0,earlyMin:0,over:0};if(!sc)return r;
   const g={};l.forEach(p=>{const k=new Date(pt(p)).toDateString();(g[k]=g[k]||[]).push(p)});
   for(const a of Object.values(g)){
-    const base=new Date(pt(a[0])).setHours(0,0,0,0),T=x=>{const[q,w]=x.split(":");return base+(+q*60+ +w)*60000};
-    const en=a.find(p=>p.type==="entrata"),us=[...a].reverse().find(p=>p.type==="uscita");
-    if(en){const d=(pt(en)-T(sc.s))/60000;if(d>TOL){r.late++;r.lateMin+=Math.round(d)}}
-    if(us){const d=(pt(us)-T(sc.e))/60000;if(d<-TOL){r.early++;r.earlyMin+=Math.round(-d)}else if(d>TOL)r.over+=Math.round(d)}
+    const dt0=new Date(pt(a[0])),d=sc[wd(dt0)];if(!dayMin(d))continue;
+    const base=new Date(dt0).setHours(0,0,0,0),T=x=>base+tm(x)*60000,st=d.a||d.c,en=d.d||d.b;
+    const e1=a.find(p=>p.type==="entrata"),u1=[...a].reverse().find(p=>p.type==="uscita");
+    if(e1){const x=(pt(e1)-T(st))/60000;if(x>TOL){r.late++;r.lateMin+=Math.round(x)}}
+    if(u1){const x=(pt(u1)-T(en))/60000;if(x<-TOL){r.early++;r.earlyMin+=Math.round(-x)}else if(x>TOL)r.over+=Math.round(x)}
   }
   return r;
+}
+function printNode(node){
+  const old=document.getElementById("pa");if(old)old.remove();
+  const pa=h("div",{id:"pa"},node);document.body.append(pa);
+  window.addEventListener("afterprint",()=>pa.remove(),{once:true});window.print();
+}
+function badgeCard(st){
+  const qr=h("div",{class:"qr"});new QRCode(qr,{text:"TB1:"+st.id,width:100,height:100,correctLevel:QRCode.CorrectLevel.M});
+  return h("div",{class:"badge"},h("div",{class:"bh"},brand.logo?h("img",{src:brand.logo}):null,h("b",{},brand.name||"Timbrature")),h("div",{class:"nm"},st.name),h("div",{class:"ql"},st.qual||""),h("div",{class:"ql"},st.nomina||""),qr);
 }
 const shrink=f=>new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,192/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext("2d").drawImage(i,0,0,c.width,c.height);ok(c.toDataURL("image/png"))};i.onerror=ko;i.src=r.result};r.onerror=ko;r.readAsDataURL(f)});
 
 function admin(u){
-  const S={staff:[],punches:[],reqs:[]};let cfg={list:[],radius:100},code="",mon=mkey(new Date());
+  const S={staff:[],punches:[],reqs:[],log:[]};let cfg={list:[],radius:100},code="",mon=mkey(new Date());
   const rows=(a,f)=>a.length?a.map(f):[h("p",{class:"mu"},"Niente da mostrare.")];
-  const P={},mi=[],open=new Set(),hr=()=>h("hr");let unP=()=>{};
+  const P={},mi=[],hr=()=>h("hr"),stat=(v,l)=>h("div",{},h("b",{},v),h("span",{},l));let unP=()=>{};
   const monthInput=()=>{const i=h("input",{type:"month",value:mon,onchange:()=>{mon=i.value||mkey(new Date());mi.forEach(x=>x.value=mon);subP();sh.upd()}});mi.push(i);return i};
   const subP=()=>{unP();unP=onSnapshot(query(collection(db,"punches"),where("m","==",mon)),s=>{S.punches=s.docs.map(d=>({id:d.id,...d.data()}));sh.upd()},deny)};
   un.push(()=>unP());
   const iv=setInterval(()=>sh.upd(),60000);un.push(()=>clearInterval(iv));
+  window.__h=()=>sh.upd();un.push(()=>{window.__h=null});
+  const find=id=>S.staff.find(x=>x.id===id);
 
   function report(){
-    const bp=byPerson(S.punches);
-    const g=Object.entries(bp).map(([uid,x])=>{const st=S.staff.find(q=>q.id===uid);return {name:x.name,days:days(x.l),ms:worked(x.l,false),...dayStats(x.l,st&&st.sched)}}).sort((a,b)=>a.name.localeCompare(b.name));
-    const bs={};S.punches.forEach(p=>{const b=bs[p.site]=bs[p.site]||{ms:0,pp:new Set(),n:0};b.pp.add(p.uid);b.n++});
+    const bp=byPerson(S.punches),[y,mo]=mon.split("-").map(Number),a=new Date(y,mo-1,1),b=new Date(y,mo,0);
+    const g=S.staff.filter(s=>s.active||bp[s.id]).map(s=>{const l=bp[s.id]?bp[s.id].l:[],e=expected(s,S.reqs,a,b),done=worked(l,false);
+      return {name:s.name,days:days(l),done,due:e.due,diff:done-e.due,...dayStats(l,s.sched)}}).sort((p,q)=>p.name.localeCompare(q.name));
+    const bs={};S.punches.forEach(p=>{const q=bs[p.site]=bs[p.site]||{ms:0,pp:new Set(),n:0};q.pp.add(p.uid);q.n++});
     Object.values(bp).forEach(x=>{let o=null;for(const p of x.l){if(p.type==="entrata")o=p;else if(o){bs[o.site].ms+=pt(p)-pt(o);o=null}}});
-    return {g,s:Object.entries(bs).map(([k,b])=>({site:k,people:b.pp.size,n:b.n,ms:b.ms})).sort((a,b)=>a.site.localeCompare(b.site))};
+    return {g,s:Object.entries(bs).map(([k,q])=>({site:k,people:q.pp.size,n:q.n,ms:q.ms})).sort((p,q)=>p.site.localeCompare(q.site))};
   }
   function exportXlsx(){
     if(!window.XLSX)return alert("Esportazione non disponibile: controlla la connessione");
     const a=S.punches.slice().sort((x,y)=>pt(x)-pt(y)),R=report(),wb=XLSX.utils.book_new(),H=ms=>+(ms/3600000).toFixed(2);
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Data e ora","Nome","Tipo","Plesso","Distanza (m)","Inserita a mano"],...a.map(p=>[new Date(pt(p)).toLocaleString("it-IT"),p.name,p.type,p.site,p.dist,p.manual?"sì":""])]),"Timbrature");
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Nome","Giorni","Ore","Ritardi","Minuti ritardo","Uscite anticipate","Minuti anticipo","Straordinario (min)"],...R.g.map(x=>[x.name,x.days,H(x.ms),x.late,x.lateMin,x.early,x.earlyMin,x.over])]),"Ore mensili");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Data e ora","Nome","Tipo","Plesso","Origine"],...a.map(p=>[new Date(pt(p)).toLocaleString("it-IT"),p.name,p.type,p.site,p.src==="badge"?"badge":p.manual?"manuale":"telefono"])]),"Timbrature");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Nome","Giorni","Ore fatte","Ore previste","Differenza (ore)","Ritardi","Minuti ritardo","Uscite anticipate","Minuti anticipo","Straordinario (min)"],...R.g.map(x=>[x.name,x.days,H(x.done),H(x.due),H(x.diff),x.late,x.lateMin,x.early,x.earlyMin,x.over])]),"Ore mensili");
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Plesso","Persone","Timbrature","Ore"],...R.s.map(x=>[x.site,x.people,x.n,H(x.ms)])]),"Per plesso");
     XLSX.writeFile(wb,"timbrature-"+mon+".xlsx");
   }
 
-  /* Presenti */
-  const l1=h("div");
-  P.p={n:h("div",{class:"card"},h("h2",{},"Presenti ora"),l1),u(){
+  /* ---- Presenti + log in tempo reale ---- */
+  const l1=h("div"),ll=h("div");
+  P.p={n:h("div",{},h("div",{class:"card"},h("h2",{},"Presenti ora"),l1),h("div",{class:"card"},h("h2",{},"Log in tempo reale"),ll)),u(){
     const a=S.staff.filter(s=>s.active&&s.last&&s.last.type==="entrata").sort((x,y)=>x.last.ts-y.last.ts),old=s=>Date.now()-s.last.ts>MAXH*3600000,w=a.filter(old);
     sh.badge("p",w.length);
     l1.replaceChildren(h("p",{class:"mu"},a.length+" persone in servizio"+(w.length?" · "+w.length+" da controllare (dentro da oltre "+MAXH+" ore)":"")),
       ...a.map(s=>h("div",{class:"item"},h("div",{class:"av"},ini(s.name)),h("div",{class:"g"},h("b",{},s.name),h("div",{class:"mu"},s.last.site+" · dalle "+hm(s.last.ts)+(old(s)?" ("+fh(Date.now()-s.last.ts)+")":""))),
-        old(s)?h("button",{class:"no",onclick:()=>fix(s)},"Correggi"):h("span",{class:"pill in"},"dentro"))))}};
+        old(s)?h("button",{class:"no",onclick:()=>fix(s)},"Correggi"):h("span",{class:"pill in"},"dentro"))));
+    ll.replaceChildren(...rows(S.log,p=>h("div",{class:"item"},h("span",{class:"pill "+(p.type==="entrata"?"in":"out")},p.type),h("div",{class:"g"},h("b",{},p.name),h("div",{class:"mu"},p.site+" · "+(p.src==="badge"?"badge":p.manual?"manuale":"telefono"))),h("span",{class:"mu"},fm(p.at)))))}};
   function fix(s){fp.value=s.id;ft.value="uscita";fd.value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);sh.go("t")}
 
-  /* Richieste + calendario */
+  /* ---- Richieste + calendario ---- */
   const lr=h("div"),cal=h("div",{class:"cal"});
-  P.r={n:h("div",{},h("div",{class:"card"},h("h2",{},"Calendario assenze"),h("div",{class:"bar"},monthInput()),cal,h("p",{class:"mu"},"Verde = ferie · Arancione = permesso · Rosso = malattia · Grigio = altro")),h("div",{class:"card"},h("h2",{},"Ferie e permessi"),lr)),u(){
+  P.r={n:h("div",{},h("div",{class:"card"},h("h2",{},"Richieste di assenza"),lr),h("div",{class:"card"},h("h2",{},"Calendario assenze"),h("div",{class:"bar"},monthInput()),cal,h("p",{class:"mu"},"Verde = ferie · Arancione = permesso · Rosso = malattia · Grigio = altro"))),u(){
     const pend=S.reqs.filter(r=>r.status==="in attesa"),done=S.reqs.filter(r=>r.status!=="in attesa");sh.badge("r",pend.length);
     const card=(r,x)=>h("div",{class:"item"},h("div",{class:"av"},ini(r.name)),h("div",{class:"g"},h("b",{},r.name),h("div",{class:"mu"},r.type+" · "+dd(r.from)+(r.to!==r.from?" → "+dd(r.to):"")),r.note?h("div",{class:"mu"},r.note):null),x);
     const st=(r,v)=>updateDoc(doc(db,"requests",r.id),{status:v});
@@ -251,13 +313,13 @@ function admin(u){
       cells.push(h("div",{class:"cd"},h("div",{class:"dn"},String(d)),...a.slice(0,3).map(r=>h("span",{class:"chip t"+(TY[r.type]||"x")},ini(r.name))),a.length>3?h("span",{class:"mu"},"+"+(a.length-3)):null))}
     cal.replaceChildren(...cells)}};
 
-  /* Timbrature + correzioni */
+  /* ---- Timbrature + correzioni ---- */
   const tb=h("tbody"),cn=h("span",{class:"mu"});
   const fp=h("select"),ft=h("select",{},h("option",{value:"entrata"},"Entrata"),h("option",{value:"uscita"},"Uscita")),fd=h("input",{type:"datetime-local"}),fs=h("select"),fmsg=h("div",{class:"msg",style:"display:none"});
   P.t={n:h("div",{},h("div",{class:"card"},h("h2",{},"Timbrature"),h("div",{class:"bar"},monthInput(),h("button",{onclick:exportXlsx},"Excel")),cn,h("div",{class:"sc"},tbl(["Data","Nome","Tipo","Plesso",""],tb))),
     h("div",{class:"card"},h("h2",{},"Aggiungi timbratura mancante"),fp,ft,fd,fs,
       h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{
-        const st=S.staff.find(x=>x.id===fp.value);if(!st||!fd.value||!fs.value)return msg(fmsg,"Scegli persona, data e plesso","ko");
+        const st=find(fp.value);if(!st||!fd.value||!fs.value)return msg(fmsg,"Scegli persona, data e plesso","ko");
         const d=new Date(fd.value);
         try{await addDoc(collection(db,"punches"),{uid:st.id,name:st.name,type:ft.value,site:fs.value,dist:0,manual:true,m:mkey(d),at:Timestamp.fromDate(d)});
           if(!st.last||d.getTime()>=st.last.ts)await updateDoc(doc(db,"staff",st.id),{last:{type:ft.value,site:fs.value,ts:d.getTime()}});
@@ -266,33 +328,144 @@ function admin(u){
       fp.replaceChildren(...S.staff.filter(s=>s.active).sort((a,b)=>a.name.localeCompare(b.name)).map(s=>h("option",{value:s.id},s.name)));fs.replaceChildren(...cfg.list.map(x=>h("option",{value:x.n},x.n)));
       if(cp)fp.value=cp;if(cs)fs.value=cs;
       const a=S.punches.slice().sort((x,y)=>pt(y)-pt(x));cn.textContent=a.length+" timbrature";
-      tb.replaceChildren(...a.map(p=>h("tr",{},...[fm(p.at),p.name,p.type+(p.manual?" ✎":""),p.site].map(v=>h("td",{},String(v??""))),h("td",{},h("button",{class:"g",onclick:()=>{if(!confirm("Eliminare questa timbratura?"))return;
-        deleteDoc(doc(db,"punches",p.id)).then(()=>{const st=S.staff.find(x=>x.id===p.uid);if(st&&st.last&&Math.abs(st.last.ts-pt(p))<60000)updateDoc(doc(db,"staff",st.id),{last:null})}).catch(()=>{})}},"✕")))))}};
+      tb.replaceChildren(...a.map(p=>h("tr",{},...[fm(p.at),p.name,p.type+(p.manual?" ✎":p.src==="badge"?" ▣":""),p.site].map(v=>h("td",{},String(v??""))),h("td",{},h("button",{class:"g",onclick:()=>{if(!confirm("Eliminare questa timbratura?"))return;
+        deleteDoc(doc(db,"punches",p.id)).then(()=>{const st=find(p.uid);if(st&&st.last&&Math.abs(st.last.ts-pt(p))<60000)updateDoc(doc(db,"staff",st.id),{last:null})}).catch(()=>{})}},"✕")))))}};
 
-  /* Ore + plessi */
+  /* ---- Ore + stampa ---- */
   const ob=h("tbody"),sb=h("tbody");
-  P.o={n:h("div",{},h("div",{class:"card"},h("h2",{},"Ore del mese"),h("div",{class:"bar"},monthInput(),h("button",{onclick:exportXlsx},"Excel")),h("div",{class:"sc"},tbl(["Nome","Giorni","Ore","Ritardi","Anticipi","Straord."],ob)),
-      h("p",{class:"mu"},"Ritardi e uscite anticipate contano oltre "+TOL+" minuti rispetto all’orario previsto (si imposta in Persone).")),
+  const pT=h("select",{},...[["w","Settimanale"],["m","Mensile"],["t","Trimestrale"],["y","Annuale"],["c","Personalizzato"]].map(([v,t])=>h("option",{value:v},t))),
+    pD=h("input",{type:"date",value:ymd(new Date())}),pE=h("input",{type:"date",value:ymd(new Date()),style:"display:none"}),pS=h("select"),pO=h("div"),pL=h("div",{class:"mu"});
+  const range=()=>{const d=new Date(pD.value+"T00:00"),t=pT.value;let a,b;
+    if(t==="w"){a=new Date(d);a.setDate(d.getDate()-(wd(d)-1));b=new Date(a);b.setDate(a.getDate()+6)}
+    else if(t==="m"){a=new Date(d.getFullYear(),d.getMonth(),1);b=new Date(d.getFullYear(),d.getMonth()+1,0)}
+    else if(t==="t"){const q=Math.floor(d.getMonth()/3)*3;a=new Date(d.getFullYear(),q,1);b=new Date(d.getFullYear(),q+3,0)}
+    else if(t==="y"){a=new Date(d.getFullYear(),0,1);b=new Date(d.getFullYear(),12,0)}
+    else{a=d;b=new Date(pE.value+"T00:00")}
+    return [a,b]};
+  const lab=()=>{pE.style.display=pT.value==="c"?"block":"none";const[a,b]=range();pL.textContent=isNaN(a)||isNaN(b)?"":"Periodo: dal "+a.toLocaleDateString("it-IT")+" al "+b.toLocaleDateString("it-IT")};
+  pT.onchange=lab;pD.onchange=lab;pE.onchange=lab;
+  async function makeReport(){
+    const[a,b]=range();if(isNaN(a)||isNaN(b)||b<a){pO.replaceChildren(h("p",{class:"msg ko"},"Controlla le date"));return}
+    pO.replaceChildren(h("p",{class:"mu"},"Calcolo in corso…"));
+    let all=[];try{all=await loadMonths(monthsOf(a,b))}catch(e){pO.replaceChildren(h("p",{class:"msg ko"},"Errore nel caricamento"));return}
+    const t0=a.getTime(),t1=b.getTime()+86399999,inr=all.filter(p=>{const x=pt(p);return x>=t0&&x<=t1}),bp=byPerson(inr);
+    const people=S.staff.filter(s=>(pS.value==="*"||s.id===pS.value)&&(s.active||bp[s.id])).sort((p,q)=>p.name.localeCompare(q.name));
+    const R=people.map(s=>{const e=expected(s,S.reqs,a,b),done=worked(bp[s.id]?bp[s.id].l:[],false);return {s,due:e.due,abs:e.abs,done,diff:done-e.due}});
+    const T=R.reduce((t,x)=>({due:t.due+x.due,abs:t.abs+x.abs,done:t.done+x.done,diff:t.diff+x.diff}),{due:0,abs:0,done:0,diff:0});
+    const per="dal "+a.toLocaleDateString("it-IT")+" al "+b.toLocaleDateString("it-IT");
+    const mk=(cls)=>{const t=h("table",{class:cls},h("thead",{},h("tr",{},...["Dipendente","Qualifica","Nomina","Previste","Assenze","Fatte","Differenza"].map(x=>h("th",{},x)))),
+      h("tbody",{},...R.map(x=>h("tr",{},h("td",{},x.s.name),h("td",{},x.s.qual||""),h("td",{},x.s.nomina||""),h("td",{},fh(x.due)),h("td",{},fh(x.abs)),h("td",{},fh(x.done)),h("td",{class:x.due?(x.diff>=0?"pos":"neg"):""},x.due?fhs(x.diff):"–"))),
+        h("tr",{},h("td",{colspan:"3"},h("b",{},"Totale")),h("td",{},h("b",{},fh(T.due))),h("td",{},h("b",{},fh(T.abs))),h("td",{},h("b",{},fh(T.done))),h("td",{},h("b",{},fhs(T.diff))))));return t};
+    const sheet=()=>h("div",{style:"font-family:system-ui,sans-serif"},h("div",{style:"display:flex;gap:8px;align-items:center"},brand.logo?h("img",{src:brand.logo,style:"height:14mm"}):null,h("h2",{style:"margin:0"},brand.name||"Timbrature")),
+      h("h3",{},"Riepilogo ore di servizio — "+per),mk("pt"),h("p",{style:"font-size:9pt"},"Differenza = ore fatte − ore previste. Le assenze approvate e le festività non sono conteggiate come ore da fare. Il segno + indica ore in più, il segno − ore in meno."),
+      h("p",{style:"font-size:9pt"},"Stampato il "+new Date().toLocaleString("it-IT")));
+    pO.replaceChildren(h("p",{class:"mu"},per),h("div",{class:"sc"},mk("")),h("button",{style:"width:100%;margin-top:10px",onclick:()=>printNode(sheet())},"Stampa / salva PDF"));
+  }
+  P.o={n:h("div",{},
+    h("div",{class:"card"},h("h2",{},"Stampa ore (previste / fatte)"),h("div",{class:"mu"},"Periodo"),pT,pD,pE,pL,h("div",{class:"mu"},"Dipendente"),pS,h("button",{style:"width:100%;margin-top:8px",onclick:makeReport},"Crea riepilogo"),pO),
+    h("div",{class:"card"},h("h2",{},"Ore del mese"),h("div",{class:"bar"},monthInput(),h("button",{onclick:exportXlsx},"Excel")),h("div",{class:"sc"},tbl(["Nome","Giorni","Fatte","Previste","Diff.","Ritardi","Anticipi","Straord."],ob)),
+      h("p",{class:"mu"},"Ritardi e uscite anticipate contano oltre "+TOL+" minuti rispetto all’orario di servizio.")),
     h("div",{class:"card"},h("h2",{},"Report per plesso"),h("div",{class:"sc"},tbl(["Plesso","Persone","Timbr.","Ore"],sb)))),
-    u(){const R=report(),f=(n,m)=>n?n+" ("+m+"m)":"–";
-      ob.replaceChildren(...R.g.map(x=>h("tr",{},...[x.name,x.days,fh(x.ms),f(x.late,x.lateMin),f(x.early,x.earlyMin),x.over?"+"+x.over+"m":"–"].map(v=>h("td",{},String(v))))));
+    u(){const R=report(),f=(n,m)=>n?n+" ("+m+"m)":"–",cp=pS.value;
+      pS.replaceChildren(h("option",{value:"*"},"Tutti i dipendenti"),...S.staff.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(s=>h("option",{value:s.id},s.name)));if(cp)pS.value=cp;lab();
+      ob.replaceChildren(...R.g.map(x=>h("tr",{},h("td",{},x.name),h("td",{},String(x.days)),h("td",{},fh(x.done)),h("td",{},x.due?fh(x.due):"–"),h("td",{class:x.due?(x.diff>=0?"pos":"neg"):""},x.due?fhs(x.diff):"–"),h("td",{},f(x.late,x.lateMin)),h("td",{},f(x.early,x.earlyMin)),h("td",{},x.over?"+"+x.over+"m":"–"))));
       sb.replaceChildren(...R.s.map(x=>h("tr",{},...[x.site,x.people,x.n,fh(x.ms)].map(v=>h("td",{},String(v))))))}};
 
-  /* Persone + orari */
-  const ci=h("input",{placeholder:"Codice per i nuovi arrivati"}),cm=h("div",{class:"msg",style:"display:none"}),l2=h("div");
-  P.s={n:h("div",{class:"card"},h("h2",{},"Persone"),h("p",{class:"mu"},"Codice di accesso per dipendenti e supplenti. Cambiandolo, i nuovi non potranno registrarsi con quello vecchio."),ci,
-    h("button",{onclick:async()=>{if(ci.value.trim().length<4)return msg(cm,"Almeno 4 caratteri","ko");try{await setDoc(doc(db,"config","access"),{code:ci.value.trim()});msg(cm,"Codice salvato","ok")}catch(e){msg(cm,"Errore: "+e.code,"ko")}}},"Salva codice"),cm,hr(),l2),
+  /* ---- Persone ---- */
+  const ci=h("input",{placeholder:"Codice per i nuovi arrivati"}),cm=h("div",{class:"msg",style:"display:none"}),l2=h("div"),nn=h("input",{placeholder:"Nome e cognome"}),nm=h("div",{class:"msg",style:"display:none"});
+  P.s={n:h("div",{},
+    h("div",{class:"card"},h("h2",{},"Nuovo dipendente"),h("p",{class:"mu"},"Per chi non usa il telefono: timbra solo con il badge. Gli altri si registrano da soli con il codice qui sotto e poi completi la loro scheda."),nn,
+      h("button",{style:"width:100%",onclick:async()=>{const n=nn.value.trim();if(n.length<2)return msg(nm,"Scrivi nome e cognome","ko");
+        const id="b"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+        try{await setDoc(doc(db,"staff",id),{name:n,active:true,manual:true,created:serverTimestamp()});nn.value="";msg(nm,"Aggiunto","ok");openScheda(id)}catch(e){msg(nm,"Errore: "+e.code,"ko")}}},"Aggiungi e apri la scheda"),nm),
+    h("div",{class:"card"},h("h2",{},"Codice di accesso"),h("p",{class:"mu"},"Da dare a dipendenti e supplenti per registrarsi dal telefono. Cambiandolo, i nuovi non potranno usare quello vecchio."),ci,
+      h("button",{onclick:async()=>{if(ci.value.trim().length<4)return msg(cm,"Almeno 4 caratteri","ko");try{await setDoc(doc(db,"config","access"),{code:ci.value.trim()});msg(cm,"Codice salvato","ok")}catch(e){msg(cm,"Errore: "+e.code,"ko")}}},"Salva codice"),cm),
+    h("div",{class:"card"},h("h2",{},"Dipendenti"),h("div",{class:"bar"},h("span",{class:"mu"},"Tocca un nome per aprire la scheda"),h("button",{class:"g",onclick:()=>{const a=S.staff.filter(s=>s.active).sort((x,y)=>x.name.localeCompare(y.name));if(a.length)printNode(h("div",{},...a.map(badgeCard)))}},"Stampa badge")),l2)),
     u(){if(document.activeElement!==ci)ci.value=code;
-      l2.replaceChildren(...rows(S.staff.slice().sort((a,b)=>a.name.localeCompare(b.name)),s=>{
-        const sc=s.sched&&s.sched.s&&s.sched.e;
-        const it=h("div",{class:"item"},h("div",{class:"av"},ini(s.name)),h("div",{class:"g"},h("b",{},s.name),h("div",{class:"mu"},(s.active?"":"disattivato · ")+(sc?s.sched.s+" – "+s.sched.e:"nessun orario"))),
-          h("button",{class:"g",onclick:()=>{open.has(s.id)?open.delete(s.id):open.add(s.id);P.s.u()}},"Orario"),
-          h("button",{class:"g",onclick:()=>updateDoc(doc(db,"staff",s.id),{active:!s.active})},s.active?"Disattiva":"Riattiva"));
-        if(!open.has(s.id))return it;
-        const a=h("input",{type:"time",value:sc?s.sched.s:"08:00"}),b=h("input",{type:"time",value:sc?s.sched.e:"14:00"});
-        return h("div",{},it,h("div",{class:"bar"},a,b,h("button",{onclick:()=>updateDoc(doc(db,"staff",s.id),{sched:{s:a.value,e:b.value}})},"Salva"),h("button",{class:"g",onclick:()=>updateDoc(doc(db,"staff",s.id),{sched:{s:"",e:""}})},"Nessuno")))}))}};
+      l2.replaceChildren(...rows(S.staff.slice().sort((a,b)=>a.name.localeCompare(b.name)),s=>h("div",{class:"item rowl",onclick:()=>openScheda(s.id)},h("div",{class:"av"},ini(s.name)),
+        h("div",{class:"g"},h("b",{},s.name),h("div",{class:"mu"},(s.qual||"qualifica?")+" · "+(s.nomina||"nomina?")+(s.active?"":" · disattivato"))),h("span",{class:"mu"},"›"))))}};
 
-  /* Plessi */
+  /* ---- Scheda dipendente ---- */
+  P.sc={n:h("div")};
+  function openScheda(id){
+    const st=find(id);if(!st)return;
+    const nm1=h("input",{value:st.name}),ql=h("select",{},h("option",{value:""},"— Qualifica —"),...QUAL.map(x=>h("option",{value:x},x))),no=h("select",{},h("option",{value:""},"— Tipo di nomina —"),...NOM.map(x=>h("option",{value:x},x)));
+    ql.value=st.qual||"";no.value=st.nomina||"";
+    const fs1=h("input",{type:"number",step:"0.5",value:st.ferieSp??"",placeholder:"es. 32"}),fr=h("input",{type:"number",step:"0.5",value:st.ferieRes??"",placeholder:"es. 5"}),orr=h("input",{type:"number",step:"0.25",value:st.oreRes??"",placeholder:"es. 12.5 oppure -3"});
+    const sch=st.sched||{},gi={};
+    const grid=h("div",{class:"sc"},h("div",{class:"mu"},"Ogni giorno ha due periodi (es. mattina e pomeriggio). Lascia vuoti i giorni di riposo."),
+      ...GG.map((g,i)=>{const w=i+1,d=sch[w]||{};gi[w]=["a","b","c","d"].map(k=>h("input",{type:"time",value:d[k]||"",style:"padding:6px;font-size:13px;margin:0;min-width:88px"}));
+        return h("div",{class:"bar",style:"margin:6px 0;justify-content:flex-start"},h("span",{style:"width:34px;font-weight:700"},g.slice(0,3)),h("span",{class:"mu"},"1°"),gi[w][0],gi[w][1],h("span",{class:"mu"},"2°"),gi[w][2],gi[w][3])}));
+    const parse=()=>{const o={};for(let w=1;w<=6;w++){const v=gi[w].map(x=>x.value);if(v.some(Boolean))o[w]={a:v[0],b:v[1],c:v[2],d:v[3]}}return o};
+    const cur=()=>({...find(id),name:nm1.value.trim()||st.name,qual:ql.value,nomina:no.value,ferieSp:num(fs1.value),ferieRes:num(fr.value),oreRes:num(orr.value),sched:parse()});
+    const box=h("div",{class:"card"}),sm1=h("div",{class:"msg",style:"display:none"});
+    async function compute(){
+      box.replaceChildren(h("p",{class:"mu"},"Calcolo in corso…"));
+      const c=cur(),now=new Date(),y=now.getFullYear(),ja=new Date(y,0,1),ye=new Date(y,now.getMonth(),now.getDate()-1);
+      let pun=[];try{pun=await loadMonths(monthsOf(ja,now),id)}catch(e){}
+      const t1=new Date(y,now.getMonth(),now.getDate()).getTime(),l=pun.filter(p=>pt(p)<t1).sort((p,q)=>pt(p)-pt(q));
+      const e=ye>=ja?expected(c,S.reqs,ja,ye):{due:0,abs:0},done=worked(l,false),diff=done-e.due,god=ferieDays(c,S.reqs,y),fr2=(c.ferieSp||0)+(c.ferieRes||0)-god,saldo=(c.oreRes||0)*3600000+diff;
+      box.replaceChildren(h("h2",{},"Calcolo automatico "+y),
+        h("div",{class:"stats"},stat(fr2+" gg","Ferie restanti"),stat(String(god),"Ferie godute")),
+        h("p",{class:"mu"},(c.ferieSp||0)+" spettanti + "+(c.ferieRes||0)+" residue anno precedente − "+god+" godute"),
+        h("div",{class:"stats"},stat(fh(e.due),"Ore previste"),stat(fh(done),"Ore fatte"),stat(fhs(diff),"Differenza")),
+        h("div",{class:"stats"},stat(fhs(saldo),"Saldo ore totale")),
+        h("p",{class:"mu"},"Saldo = ore residue anno precedente ("+(c.oreRes||0)+" h) + differenza dall’1 gennaio a ieri. Assenze approvate e festività non contano come ore da fare."))}
+    P.sc.n=h("div",{},
+      h("div",{class:"card"},h("div",{class:"bar"},h("h2",{style:"margin:0"},"Scheda dipendente"),h("button",{class:"g",onclick:()=>sh.go("s")},"‹ Elenco")),
+        h("div",{class:"mu"},"Nome"),nm1,h("div",{class:"mu"},"Qualifica"),ql,h("div",{class:"mu"},"Tipo di nomina"),no,
+        h("div",{class:"mu"},"Ferie spettanti nell’anno (giorni)"),fs1,h("div",{class:"mu"},"Ferie residue anno precedente (giorni)"),fr,h("div",{class:"mu"},"Ore residue anno precedente (+ in più / − in meno)"),orr),
+      h("div",{class:"card"},h("h2",{},"Orario di servizio"),grid,
+        h("button",{class:"g",style:"margin-top:8px",onclick:()=>{for(let w=2;w<=5;w++)gi[w].forEach((x,k)=>x.value=gi[1][k].value)}},"Copia il lunedì su martedì–venerdì")),
+      box,
+      h("div",{class:"card"},
+        h("button",{style:"width:100%",onclick:async()=>{const p=parse();
+          for(const w in p){const d=p[w];if((d.a&&!d.b)||(!d.a&&d.b)||(d.c&&!d.d)||(!d.c&&d.d)||(d.a&&d.b&&d.b<=d.a)||(d.c&&d.d&&d.d<=d.c))return msg(sm1,"Orario non valido il "+GG[w-1].toLowerCase()+": controlla inizio e fine","ko")}
+          try{const c=cur();await updateDoc(doc(db,"staff",id),{name:c.name,qual:c.qual,nomina:c.nomina,ferieSp:c.ferieSp,ferieRes:c.ferieRes,oreRes:c.oreRes,sched:c.sched});msg(sm1,"Scheda salvata","ok");compute()}catch(e){msg(sm1,"Errore: "+e.code,"ko")}}},"Salva scheda"),
+        h("div",{class:"tg"},h("button",{onclick:()=>printNode(badgeCard(cur()))},"Stampa badge"),h("button",{onclick:async()=>{await updateDoc(doc(db,"staff",id),{active:!find(id).active});sh.go("s")}},find(id).active?"Disattiva":"Riattiva")),sm1));
+    sh.go("sc");compute();
+  }
+
+  /* ---- Postazione badge (fotocamera) ---- */
+  let stream=null,tmr=0,face=ls.g("tb_face")||"environment";const recent={};
+  const kv=h("video",{class:"kv",playsinline:"",autoplay:""}),kc=document.createElement("canvas"),kb=h("div",{class:"kbox"},"Premi “Avvia fotocamera”"),ksite=h("select"),bF=h("button",{},"Anteriore"),bR=h("button",{},"Posteriore");
+  kv.muted=true;
+  const flash=(t,c)=>{kb.textContent=t;kb.className="kbox "+(c||"");if(navigator.vibrate)navigator.vibrate(c==="ko"?[200,80,200]:120);clearTimeout(flash.t);flash.t=setTimeout(()=>{kb.textContent="Avvicina il badge alla fotocamera";kb.className="kbox"},4000)};
+  async function onScan(txt){
+    if(!txt.startsWith("TB1:"))return;const id=txt.slice(4),now=Date.now();
+    if(recent[id]&&now-recent[id]<8000)return;recent[id]=now;
+    const st=find(id);if(!st)return flash("Badge non riconosciuto","ko");
+    if(!st.active)return flash(st.name+": accesso disattivato","ko");
+    if(!ksite.value)return flash("Scegli il plesso","ko");
+    if(st.last&&now-st.last.ts<30000)return flash(st.name+": già timbrato poco fa","ko");
+    const type=st.last&&st.last.type==="entrata"?"uscita":"entrata",d=new Date();
+    try{await addDoc(collection(db,"punches"),{uid:id,name:st.name,type,site:ksite.value,dist:0,src:"badge",m:mkey(d),at:serverTimestamp()});
+      await updateDoc(doc(db,"staff",id),{last:{type,site:ksite.value,ts:now}});flash(type.toUpperCase()+" · "+st.name+" · "+hm(now),type==="entrata"?"in":"out")}
+    catch(e){flash("Errore: "+e.code,"ko")}
+  }
+  function scan(){
+    if(!stream)return;
+    if(kv.videoWidth){const w=Math.min(640,kv.videoWidth),k=w/kv.videoWidth;kc.width=w;kc.height=Math.round(kv.videoHeight*k);
+      const x=kc.getContext("2d",{willReadFrequently:true});x.drawImage(kv,0,0,kc.width,kc.height);
+      const im=x.getImageData(0,0,kc.width,kc.height),q=window.jsQR&&jsQR(im.data,im.width,im.height,{inversionAttempts:"dontInvert"});if(q&&q.data)onScan(q.data)}
+    tmr=setTimeout(scan,150);
+  }
+  function stopCam(){clearTimeout(tmr);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}kv.srcObject=null}
+  async function cam(){
+    stopCam();if(!navigator.mediaDevices)return flash("Fotocamera non disponibile","ko");
+    try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:face},width:{ideal:1280}},audio:false});kv.srcObject=stream;await kv.play();kb.textContent="Avvicina il badge alla fotocamera";kb.className="kbox";scan()}
+    catch(e){stopCam();flash("Impossibile usare la fotocamera: consenti l’accesso","ko")}
+  }
+  un.push(stopCam);
+  const setFace=f=>{face=f;ls.s("tb_face",f);bF.classList.toggle("on",f==="user");bR.classList.toggle("on",f==="environment");kv.style.transform=f==="user"?"scaleX(-1)":"none";if(stream)cam()};
+  bF.onclick=()=>setFace("user");bR.onclick=()=>setFace("environment");setFace(face);
+  ksite.onchange=()=>ls.s("tb_site",ksite.value);
+  P.k={n:h("div",{class:"card"},h("h2",{},"Postazione badge"),h("p",{class:"mu"},"Lascia il tablet fermo all’ingresso: ogni dipendente mostra il proprio badge alla fotocamera."),
+    h("div",{class:"mu"},"Plesso di questa postazione"),ksite,h("div",{class:"mu",style:"margin-top:8px"},"Fotocamera"),h("div",{class:"tg"},bF,bR),
+    kv,kb,h("div",{class:"tg"},h("button",{onclick:cam},"Avvia fotocamera"),h("button",{onclick:()=>{stopCam();kb.textContent="Fotocamera ferma";kb.className="kbox"}},"Ferma"))),
+    l:stopCam,u(){const c=ksite.value||ls.g("tb_site");ksite.replaceChildren(...cfg.list.map(x=>h("option",{value:x.n},x.n)));if(c)ksite.value=c}};
+
+  /* ---- Plessi ---- */
   const sn=h("input",{placeholder:"Nome plesso (es. Plesso Centro)"}),ri=h("input",{type:"number",min:"20",placeholder:"Raggio in metri"}),sm=h("div",{class:"msg",style:"display:none"}),l3=h("div");
   const saveCfg=(list,radius)=>setDoc(doc(db,"config","sites"),{list,radius}).catch(e=>msg(sm,"Errore: "+e.code,"ko"));
   const ai=h("input",{placeholder:"Indirizzo (es. Via Roma 1, Frosinone)"}),ar=h("div"),ci2=h("input",{placeholder:"Oppure coordinate (es. 41.6400, 13.3400)"});
@@ -314,18 +487,25 @@ function admin(u){
     u(){if(document.activeElement!==ri)ri.value=cfg.radius;
       l3.replaceChildren(...rows(cfg.list,(s,i)=>h("div",{class:"item"},h("div",{class:"g"},h("b",{},s.n),h("div",{},h("a",{href:"https://www.google.com/maps?q="+s.lat+","+s.lng,target:"_blank",rel:"noopener",class:"mu"},"Vedi sulla mappa"))),h("button",{class:"g",onclick:()=>saveCfg(cfg.list.filter((_,j)=>j!==i),cfg.radius)},"Elimina"))))}};
 
-  /* Aspetto */
+  /* ---- Impostazioni: aspetto + festività ---- */
   let newLogo;const bn=h("input",{placeholder:"Nome dell’app o della scuola"}),bc=h("input",{type:"color",value:"#0f766e",style:"height:48px;padding:4px"}),bf=h("input",{type:"file",accept:"image/*"}),bp=h("img",{class:"bp",style:"display:none",alt:""}),bm=h("div",{class:"msg",style:"display:none"});
   bf.onchange=async()=>{const f=bf.files[0];if(!f)return;try{const d=await shrink(f);if(d.length>300000)return msg(bm,"Immagine troppo pesante","ko");newLogo=d;bp.src=d;bp.style.display="block"}catch(e){msg(bm,"Immagine non valida","ko")}};
-  P.a={n:h("div",{class:"card"},h("h2",{},"Aspetto dell’app"),h("div",{class:"mu"},"Nome"),bn,h("div",{class:"mu"},"Colore principale"),bc,h("div",{class:"mu"},"Logo"),bf,bp,
-    h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{try{await setDoc(doc(db,"config","brand"),{name:bn.value.trim(),color:bc.value,logo:newLogo!==undefined?newLogo:(brand.logo||"")});newLogo=undefined;msg(bm,"Salvato","ok")}catch(e){msg(bm,"Errore: "+e.code,"ko")}}},"Salva"),
-    h("button",{class:"g",style:"width:100%;margin-top:8px",onclick:()=>{newLogo="";bp.style.display="none";bf.value="";msg(bm,"Logo rimosso: premi Salva","ok")}},"Rimuovi logo"),bm),
-    u(){if(document.activeElement!==bn)bn.value=brand.name||"";bc.value=brand.color||"#0f766e";if(newLogo===undefined&&brand.logo){bp.src=brand.logo;bp.style.display="block"}}};
+  const hd=h("input",{type:"date"}),hn=h("input",{placeholder:"Descrizione (es. Immacolata)"}),hl=h("div"),hm2=h("div",{class:"msg",style:"display:none"});
+  const saveHol=list=>setDoc(doc(db,"config","holidays"),{days:list}).catch(e=>msg(hm2,"Errore: "+e.code,"ko"));
+  P.a={n:h("div",{},
+    h("div",{class:"card"},h("h2",{},"Aspetto dell’app"),h("div",{class:"mu"},"Nome"),bn,h("div",{class:"mu"},"Colore principale"),bc,h("div",{class:"mu"},"Logo"),bf,bp,
+      h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{try{await setDoc(doc(db,"config","brand"),{name:bn.value.trim(),color:bc.value,logo:newLogo!==undefined?newLogo:(brand.logo||"")});newLogo=undefined;msg(bm,"Salvato","ok")}catch(e){msg(bm,"Errore: "+e.code,"ko")}}},"Salva"),
+      h("button",{class:"g",style:"width:100%;margin-top:8px",onclick:()=>{newLogo="";bp.style.display="none";bf.value="";msg(bm,"Logo rimosso: premi Salva","ok")}},"Rimuovi logo"),bm),
+    h("div",{class:"card"},h("h2",{},"Festività e chiusure"),h("p",{class:"mu"},"Nei giorni indicati non ci sono ore da fare né ferie conteggiate."),hd,hn,
+      h("button",{style:"width:100%;margin-top:8px",onclick:()=>{if(!hd.value)return msg(hm2,"Scegli la data","ko");saveHol([...HOLL.filter(x=>x.d!==hd.value),{d:hd.value,n:hn.value.trim()}]);hn.value="";msg(hm2,"Aggiunto","ok")}},"Aggiungi"),hm2,hr(),hl)),
+    u(){if(document.activeElement!==bn)bn.value=brand.name||"";bc.value=brand.color||"#0f766e";if(newLogo===undefined&&brand.logo){bp.src=brand.logo;bp.style.display="block"}
+      hl.replaceChildren(...rows(HOLL.slice().sort((a,b)=>a.d<b.d?-1:1),x=>h("div",{class:"item"},h("div",{class:"g"},h("b",{},dd(x.d)),h("div",{class:"mu"},x.n||"")),h("button",{class:"g",onclick:()=>saveHol(HOLL.filter(y=>y.d!==x.d))},"Elimina"))))}};
 
   const deny=()=>plain("Accesso negato",h("div",{class:"card"},"Questo account non è autorizzato come responsabile."),h("p",{class:"c"},h("button",{class:"g",onclick:()=>signOut(auth)},"Esci")));
-  const sh=shell("Responsabile",h("button",{onclick:()=>signOut(auth)},"Esci"),[{k:"p",t:"Presenti",i:"check"},{k:"r",t:"Richieste",i:"cal"},{k:"t",t:"Timbrature",i:"list"},{k:"o",t:"Ore",i:"chart"},{k:"s",t:"Persone",i:"users"},{k:"d",t:"Plessi",i:"pin"},{k:"a",t:"Aspetto",i:"clock"}],P,"p");
+  const sh=shell("Responsabile",h("button",{onclick:()=>signOut(auth)},"Esci"),[{k:"p",t:"Presenti",i:"check"},{k:"r",t:"Richieste",i:"cal"},{k:"t",t:"Timbrature",i:"list"},{k:"o",t:"Ore",i:"chart"},{k:"s",t:"Persone",i:"users"},{k:"k",t:"Postazione",i:"cam"},{k:"d",t:"Plessi",i:"pin"},{k:"a",t:"Impost.",i:"gear"}],P,/[?&]kiosk/.test(location.search)?"k":"p");
   un.push(onSnapshot(collection(db,"staff"),s=>{S.staff=s.docs.map(d=>({id:d.id,...d.data()}));sh.upd()},deny));
-  un.push(onSnapshot(query(collection(db,"requests"),orderBy("at","desc"),limit(200)),s=>{S.reqs=s.docs.map(d=>({id:d.id,...d.data()}));sh.upd()},deny));
+  un.push(onSnapshot(query(collection(db,"requests"),orderBy("at","desc"),limit(300)),s=>{S.reqs=s.docs.map(d=>({id:d.id,...d.data()}));sh.upd()},deny));
+  un.push(onSnapshot(query(collection(db,"punches"),orderBy("at","desc"),limit(25)),s=>{S.log=s.docs.map(d=>d.data());sh.upd()},deny));
   un.push(onSnapshot(doc(db,"config","sites"),d=>{if(d.exists())cfg={list:[],radius:100,...d.data()};sh.upd()},()=>{}));
   un.push(onSnapshot(doc(db,"config","access"),d=>{code=d.exists()?d.data().code:"";sh.upd()},()=>{}));
   un.push(onSnapshot(doc(db,"config","brand"),()=>sh.upd(),()=>{}));
