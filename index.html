@@ -88,7 +88,7 @@ const pos=()=>new Promise((ok,ko)=>navigator.geolocation?navigator.geolocation.g
 const stLabel={"in attesa":["","In attesa"],"approvata":["in","Approvata"],"rifiutata":["ko","Rifiutata"]};
 
 /* ---------- struttura ---------- */
-function top(sub,right){return h("div",{class:"top"},h("div",{class:"row0"},h("div",{style:"display:flex;gap:10px;align-items:center"},h("img",{class:"bl",style:"display:none",alt:""}),h("div",{},h("h1",{class:"bn"},brand.name||"Timbrature"),h("div",{class:"sub"},sub))),right||null))}
+function top(sub,right){return h("div",{class:"top"},h("div",{class:"row0"},h("div",{style:"display:flex;gap:10px;align-items:center"},h("img",{class:"bl",style:"display:none",alt:""}),h("div",{},h("h1",{class:"bn"},brand.name||"Timbrature"),h("div",{class:"sub"},sub+" · v3"))),right||null))}
 function plain(sub,...n){document.getElementById("app").replaceChildren(top(sub),h("main",{},...n));applyBrand()}
 function shell(sub,right,T,P,start){
   const main=h("main"),nav=h("nav",{class:"nav"}),bd={};
@@ -295,11 +295,24 @@ function admin(u){
   /* Plessi */
   const sn=h("input",{placeholder:"Nome plesso (es. Plesso Centro)"}),ri=h("input",{type:"number",min:"20",placeholder:"Raggio in metri"}),sm=h("div",{class:"msg",style:"display:none"}),l3=h("div");
   const saveCfg=(list,radius)=>setDoc(doc(db,"config","sites"),{list,radius}).catch(e=>msg(sm,"Errore: "+e.code,"ko"));
-  P.d={n:h("div",{class:"card"},h("h2",{},"Plessi"),h("p",{class:"mu"},"Vai nel plesso, scrivi il nome e premi “Salva qui”: la posizione attuale diventa la sede."),sn,
-    h("button",{onclick:async()=>{if(!sn.value.trim())return msg(sm,"Scrivi il nome","ko");if(cfg.list.length>=12)return msg(sm,"Troppi plessi","ko");
-      try{const p=await pos();await saveCfg([...cfg.list,{n:sn.value.trim(),lat:p.latitude,lng:p.longitude}],cfg.radius);sn.value="";msg(sm,"Plesso salvato","ok")}catch(e){msg(sm,e.message,"ko")}}},"Salva qui"),
-    h("p",{class:"mu"},"Raggio consentito (metri)"),ri,h("button",{class:"g",onclick:()=>saveCfg(cfg.list,Math.max(20,+ri.value||100))},"Salva raggio"),sm,hr(),l3),
-    u(){if(document.activeElement!==ri)ri.value=cfg.radius;l3.replaceChildren(...rows(cfg.list,(s,i)=>h("div",{class:"item"},h("div",{class:"g"},(i+1)+". "+s.n),h("button",{class:"g",onclick:()=>saveCfg(cfg.list.filter((_,j)=>j!==i),cfg.radius)},"Elimina"))))}};
+  const ai=h("input",{placeholder:"Indirizzo (es. Via Roma 1, Frosinone)"}),ar=h("div"),ci2=h("input",{placeholder:"Oppure coordinate (es. 41.6400, 13.3400)"});
+  const addSite=(n,lat,lng)=>{if(!n)return msg(sm,"Scrivi prima il nome del plesso","ko");if(cfg.list.length>=12)return msg(sm,"Troppi plessi","ko");
+    return saveCfg([...cfg.list,{n,lat,lng}],cfg.radius).then(()=>{sn.value="";ar.replaceChildren();msg(sm,"Plesso salvato: "+n,"ok")})};
+  async function search(){const q=ai.value.trim();if(!q)return;ar.replaceChildren(h("p",{class:"mu"},"Ricerca…"));
+    try{const r=await(await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=it&q="+encodeURIComponent(q))).json();
+      ar.replaceChildren(...(r.length?r.map(x=>h("div",{class:"item"},h("div",{class:"g mu"},x.display_name),h("button",{class:"ok",onclick:()=>addSite(sn.value.trim(),+x.lat,+x.lon)},"Usa"))):[h("p",{class:"mu"},"Nessun risultato: prova con via, numero e città.")]))}
+    catch(e){ar.replaceChildren(h("p",{class:"mu"},"Ricerca non disponibile: usa le coordinate."))}}
+  function manual(){const m=ci2.value.replace(/,\s/g," ").trim().split(/\s+/).map(Number);
+    if(m.length!==2||m.some(isNaN)||Math.abs(m[0])>90||Math.abs(m[1])>180)return msg(sm,"Coordinate non valide (es. 41.6400, 13.3400, con il punto)","ko");addSite(sn.value.trim(),m[0],m[1])}
+  P.d={n:h("div",{},
+    h("div",{class:"card"},h("h2",{},"Nuovo plesso"),h("div",{class:"mu"},"1. Scrivi il nome"),sn,h("div",{class:"mu"},"2. Indica la posizione in uno di questi modi"),
+      h("button",{class:"g",style:"width:100%;margin:6px 0",onclick:async()=>{try{const p=await pos();addSite(sn.value.trim(),p.latitude,p.longitude)}catch(e){msg(sm,e.message,"ko")}}},"Sono nel plesso: salva la posizione attuale"),
+      ai,h("button",{class:"g",style:"width:100%;margin-bottom:6px",onclick:search},"Cerca indirizzo"),ar,
+      ci2,h("button",{class:"g",style:"width:100%",onclick:manual},"Salva coordinate"),sm),
+    h("div",{class:"card"},h("h2",{},"Plessi salvati"),h("p",{class:"mu"},"I dipendenti possono timbrare in qualsiasi plesso della lista."),h("div",{class:"mu"},"Raggio consentito (metri)"),ri,
+      h("button",{class:"g",onclick:()=>saveCfg(cfg.list,Math.max(20,+ri.value||100))},"Salva raggio"),hr(),l3)),
+    u(){if(document.activeElement!==ri)ri.value=cfg.radius;
+      l3.replaceChildren(...rows(cfg.list,(s,i)=>h("div",{class:"item"},h("div",{class:"g"},h("b",{},s.n),h("div",{},h("a",{href:"https://www.google.com/maps?q="+s.lat+","+s.lng,target:"_blank",rel:"noopener",class:"mu"},"Vedi sulla mappa"))),h("button",{class:"g",onclick:()=>saveCfg(cfg.list.filter((_,j)=>j!==i),cfg.radius)},"Elimina"))))}};
 
   /* Aspetto */
   let newLogo;const bn=h("input",{placeholder:"Nome dell’app o della scuola"}),bc=h("input",{type:"color",value:"#0f766e",style:"height:48px;padding:4px"}),bf=h("input",{type:"file",accept:"image/*"}),bp=h("img",{class:"bp",style:"display:none",alt:""}),bm=h("div",{class:"msg",style:"display:none"});
