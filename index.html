@@ -100,7 +100,7 @@ const pos=()=>new Promise((ok,ko)=>navigator.geolocation?navigator.geolocation.g
 const stLabel={"in attesa":["","In attesa"],"approvata":["in","Approvata"],"rifiutata":["ko","Rifiutata"]};
 
 /* ---------- struttura ---------- */
-function top(sub,right){return h("div",{class:"top"},h("div",{class:"row0"},h("div",{style:"display:flex;gap:10px;align-items:center"},h("img",{class:"bl",style:"display:none",alt:""}),h("div",{},h("h1",{class:"bn"},brand.name||"Timbrature"),h("div",{class:"sub"},sub+" · v5"))),right||null))}
+function top(sub,right){return h("div",{class:"top"},h("div",{class:"row0"},h("div",{style:"display:flex;gap:10px;align-items:center"},h("img",{class:"bl",style:"display:none",alt:""}),h("div",{},h("h1",{class:"bn"},brand.name||"Timbrature"),h("div",{class:"sub"},sub+" · v6"))),right||null))}
 function plain(sub,...n){document.getElementById("app").replaceChildren(top(sub),h("main",{},...n));applyBrand()}
 function shell(sub,right,T,P,start){
   const main=h("main"),nav=h("nav",{class:"nav"}),bd={};
@@ -148,7 +148,7 @@ function reg(u){
 function punchView(u,s){
   let cfg={list:[],radius:100},last=s.last||null,mine=[],reqs=[];
   const clk=h("div",{class:"clock"}),dtl=h("div",{class:"c mu"}),st=h("div",{class:"c",style:"margin-top:10px"}),btn=h("button",{class:"big"}),m=h("div",{class:"msg",style:"display:none"});
-  const sToday=h("b"),sMonth=h("b"),sDays=h("b");
+  const sToday=h("b"),sMonth=h("b"),sDays=h("b"),sal=h("div",{class:"mu"},"Calcolo in corso…");
   const tick=()=>{const d=new Date();clk.textContent=d.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit",second:"2-digit"});dtl.textContent=d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"})};
   tick();const iv=setInterval(tick,1000);un.push(()=>clearInterval(iv));
   const paint=()=>{const i=last&&last.type==="entrata";
@@ -157,18 +157,18 @@ function punchView(u,s){
   const P={};
   P.t={n:h("div",{},h("div",{class:"card"},h("div",{class:"c mu"},"Ciao, "+s.name),clk,dtl,st,btn,m),
     h("button",{class:"g",style:"width:100%;margin-bottom:14px",onclick:()=>sh.go("r")},"Richiedi un’assenza"),
-    h("div",{class:"card"},h("h2",{},"Le tue ore"),h("div",{class:"stats"},h("div",{},sToday,h("span",{},"Oggi")),h("div",{},sMonth,h("span",{},"Questo mese")),h("div",{},sDays,h("span",{},"Giorni"))))),
+    h("div",{class:"card"},h("h2",{},"Le tue ore"),h("div",{class:"stats"},h("div",{},sToday,h("span",{},"Oggi")),h("div",{},sMonth,h("span",{},"Questo mese")),h("div",{},sDays,h("span",{},"Giorni")))),
+    h("div",{class:"card"},h("h2",{},"Il tuo saldo ore"),sal)),
     u(){const td=new Date().toDateString();sToday.textContent=fh(worked(mine.filter(p=>new Date(pt(p)).toDateString()===td),true));sMonth.textContent=fh(worked(mine,true));sDays.textContent=days(mine)}};
   const hl=h("div");
   P.s={n:h("div",{class:"card"},h("h2",{},"Timbrature del mese"),hl),u(){hl.replaceChildren(...(mine.length?mine.slice().sort((a,b)=>pt(b)-pt(a)).map(p=>h("div",{class:"item"},h("span",{class:"pill "+(p.type==="entrata"?"in":"out")},p.type),h("div",{class:"g"},h("b",{},p.site),h("div",{class:"mu"},fm(p.at)))
     )):[h("p",{class:"mu"},"Ancora nessuna timbratura questo mese.")]))}};
   const fer=h("div"),rt=h("select",{},...MOT.map(x=>h("option",{},x))),rf=h("input",{type:"date"}),rto=h("input",{type:"date"}),rh=h("input",{type:"number",step:"0.25",min:"0",placeholder:"Ore (vuote = intera giornata)"}),rn=h("input",{placeholder:"Note (facoltative)",maxlength:"250"}),rm=h("div",{class:"msg",style:"display:none"}),rl=h("div");
-  rt.onchange=()=>{rh.placeholder=rt.value==="Recupero ore"?"Ore di recupero da usare (obbligatorio)":"Ore (vuote = intera giornata)"};
+  rt.onchange=()=>{rh.placeholder=rt.value==="Recupero ore"?"Ore da scalare dal tuo saldo (vuote = giornata intera)":"Ore (vuote = intera giornata)"};
   P.r={n:h("div",{},
     h("div",{class:"card"},h("h2",{},"Nuova richiesta di assenza"),h("div",{class:"mu"},"Motivo"),rt,h("div",{class:"mu"},"Dal"),rf,h("div",{class:"mu"},"Al"),rto,rh,rn,
       h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{
         if(!rf.value||!rto.value||rto.value<rf.value)return msg(rm,"Controlla le date","ko");
-        if(rt.value==="Recupero ore"&&!(+rh.value>0))return msg(rm,"Per il recupero indica quante ore","ko");
         try{await addDoc(collection(db,"requests"),{uid:u.uid,name:s.name,type:rt.value,from:rf.value,to:rto.value,hrs:rh.value?+rh.value:null,note:rn.value.trim(),status:"in attesa",at:serverTimestamp()});rn.value="";rh.value="";msg(rm,"Richiesta inviata al responsabile","ok")}
         catch(e){msg(rm,"Errore nell’invio","ko")}}},"Invia richiesta"),rm),
     h("div",{class:"card"},h("h2",{},"Le tue ferie"),fer),
@@ -181,7 +181,15 @@ function punchView(u,s){
   paint();sh.upd();
   un.push(onSnapshot(doc(db,"config","sites"),d=>{if(d.exists())cfg={list:[],radius:100,...d.data()}}));
   un.push(onSnapshot(query(collection(db,"punches"),where("uid","==",u.uid),where("m","==",mkey(new Date()))),x=>{mine=x.docs.map(d=>d.data());sh.upd()}));
-  un.push(onSnapshot(query(collection(db,"requests"),where("uid","==",u.uid)),x=>{reqs=x.docs.map(d=>d.data());sh.upd()}));
+  un.push(onSnapshot(query(collection(db,"requests"),where("uid","==",u.uid)),x=>{reqs=x.docs.map(d=>d.data());sh.upd();saldo()}));
+  async function saldo(){
+    const now=new Date(),y=now.getFullYear(),ja=new Date(y,0,1),ms=monthsOf(ja,now),me={...s,id:u.uid};
+    try{const[pun,exs]=await Promise.all([loadMonths(ms,u.uid),loadExtras(ms,u.uid)]);pun.sort((a,b)=>pt(a)-pt(b));
+      const t=period(me,ja,now,pun,reqs),x=extraSums(u.uid,t.rows,exs),sd=(s.oreRes||0)*60+t.diff-x.str;
+      sal.replaceChildren(h("div",{class:"stats"},stat(Hm(t.pos),"In più"),stat(Hm(t.usu),"Usufruite"),stat(Hm(t.alt),"Ritardi/altro")),h("div",{class:"stats"},stat(HSm(sd),"Saldo ore")),
+        h("p",{class:"mu"},"Saldo = ore residue anno precedente ("+(s.oreRes||0)+" h) + ore in più − ore usufruite (permessi brevi, riposi) − ritardi − straordinario pagato. Calcolato fino all’ultima uscita."))}
+    catch(e){sal.textContent="Saldo non disponibile"}
+  }
   btn.onclick=async()=>{
     btn.disabled=true;msg(m,"Controllo la posizione…");
     try{
@@ -193,7 +201,7 @@ function punchView(u,s){
       await addDoc(collection(db,"punches"),{uid:u.uid,name:s.name,type,site:best.x.n,lat:p.latitude,lng:p.longitude,dist:Math.round(best.d),src:"telefono",m:mkey(new Date()),at:serverTimestamp()});
       last={type,site:best.x.n,ts:Date.now()};
       await updateDoc(doc(db,"staff",u.uid),{last});
-      paint();msg(m,"Registrata: "+type+" · "+best.x.n,"ok");
+      paint();msg(m,"Registrata: "+type+" · "+best.x.n,"ok");saldo();
     }catch(e){msg(m,e.code==="permission-denied"?"Non autorizzato. Contatta il responsabile.":(e.message||"Errore"),"ko")}
     btn.disabled=false;
   };
@@ -234,31 +242,33 @@ const schedMin=d=>!d?0:(d.h?hmin(d.h):rng(d.a,d.b)+rng(d.c,d.d));
 /* Calcolo di una giornata: differenza = fatte - da fare, con tolleranza e pausa */
 function dayCalc(st,day,l,reqs){
   const k=ymd(day),sd=st.sched&&st.sched[wd(day)],full=HOL.has(k)?0:schedMin(sd);
-  let just=0;
-  if(full>0)reqs.forEach(r=>{if(r.uid===st.id&&r.status==="approvata"&&r.from<=k&&k<=r.to)just+=r.hrs?Math.round(r.hrs*60):full});
+  let just=0,rq=0;
+  if(full>0)reqs.forEach(r=>{if(r.uid===st.id&&r.status==="approvata"&&r.from<=k&&k<=r.to){const m=r.hrs?Math.round(r.hrs*60):full;if(r.type==="Recupero ore")rq+=m;else just+=m}});
   just=Math.min(just,full);const due=full-just;
   let W=0,open=null,pairs=0,first=null,last=null;
   for(const p of l){const x=pt(p)/60000;if(p.type==="entrata"){if(open==null)open=x;if(first==null)first=x}else if(open!=null){W+=x-open;pairs++;last=x;open=null}}
   W=Math.round(W);
   if(pairs===1&&sd&&sd.p)W=Math.max(0,W-sd.p);
   let diff=W-due,late=0,early=0;
-  if(sd&&(sd.a||sd.c)&&pairs>0&&just===0){
+  if(sd&&(sd.a||sd.c)&&pairs>0&&just===0&&rq===0){
     const base=new Date(day).setHours(0,0,0,0)/60000,L=first-base-hmin(sd.a||sd.c),E=hmin(sd.d||sd.b)-(last-base);
     late=L>TOL?Math.round(L):0;early=E>TOL?Math.round(E):0;
     if(diff<0&&due>0){const f=(L>0&&L<=TOL?L:0)+(E>0&&E<=TOL?E:0);diff=Math.min(0,diff+Math.round(f))}
   }
-  return {due,just,full,worked:W,diff,late,early,pairs};
+  const neg=Math.max(0,-diff),usu=Math.min(rq,neg);
+  return {due,just,full,worked:W,diff,late,early,pairs,pos:Math.max(0,diff),neg,usu};
 }
 function period(st,from,to,list,reqs){
   const by={};list.forEach(p=>{const k=ymd(new Date(pt(p)));(by[k]=by[k]||[]).push(p)});
-  const today=ymd(new Date()),t={due:0,just:0,worked:0,diff:0,late:0,early:0,days:0,rows:[]};
+  const today=ymd(new Date()),t={due:0,just:0,worked:0,diff:0,late:0,early:0,days:0,pos:0,neg:0,usu:0,alt:0,rows:[]};
   for(let d=new Date(from);ymd(d)<=ymd(to);d.setDate(d.getDate()+1)){
     const k=ymd(d);if(k>today)break;
     const l=by[k]||[];if(k===today&&!l.some(p=>p.type==="uscita"))continue;
     const c=dayCalc(st,d,l,reqs);if(!c.full&&!l.length)continue;
-    t.due+=c.due;t.just+=c.just;t.worked+=c.worked;t.diff+=c.diff;if(c.late)t.late++;if(c.early)t.early++;if(c.pairs)t.days++;
+    t.due+=c.due;t.just+=c.just;t.worked+=c.worked;t.diff+=c.diff;t.pos+=c.pos;t.neg+=c.neg;t.usu+=c.usu;if(c.late)t.late++;if(c.early)t.early++;if(c.pairs)t.days++;
     t.rows.push({k,...c});
   }
+  t.alt=t.neg-t.usu;
   return t;
 }
 function extraSums(uid,rows,ex){
@@ -346,7 +356,7 @@ function admin(u){
     if(!window.XLSX)return alert("Esportazione non disponibile: controlla la connessione");
     const a=S.punches.slice().sort((x,y)=>pt(x)-pt(y)),R=mreport(),wb=XLSX.utils.book_new(),H=m=>+(m/60).toFixed(2);
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Data e ora","Nome","Tipo","Plesso","Origine"],...a.map(p=>[new Date(pt(p)).toLocaleString("it-IT"),p.name,p.type,p.site,p.src==="badge"?"badge":p.manual?"manuale":"telefono"])]),"Timbrature");
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Nome","Giorni","Ore fatte","Ore previste","Assenze giustificate (ore)","Differenza (ore)","Straordinario (ore)","A recupero (ore)","Ritardi oltre tolleranza","Uscite anticipate oltre tolleranza"],...R.g.map(x=>[x.name,x.days,H(x.worked),H(x.due),H(x.just),H(x.diff),H(x.str),H(x.rec),x.late,x.early])]),"Ore mensili");
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Nome","Giorni","Ore fatte","Ore previste","Ore in più","Usufruite (permessi brevi / riposo)","Ritardi e altro","Differenza","Straordinario pagato"],...R.g.map(x=>[x.name,x.days,H(x.worked),H(x.due),H(x.pos),H(x.usu),H(x.alt),H(x.diff),H(x.str)])]),"Ore mensili");
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([["Plesso","Persone","Timbrature","Ore"],...R.s.map(x=>[x.site,x.people,x.n,+(x.ms/3600000).toFixed(2)])]),"Per plesso");
     XLSX.writeFile(wb,"timbrature-"+mon+".xlsx");
   }
@@ -364,14 +374,13 @@ function admin(u){
 
   /* ---- Richieste di assenza + inserimento + calendario ---- */
   const lr=h("div"),cal=h("div",{class:"cal"});
-  const ap=h("select"),am=h("select",{},...MOT.map(x=>h("option",{},x))),af=h("input",{type:"date"}),at=h("input",{type:"date"}),ah=h("input",{type:"number",step:"0.25",min:"0",placeholder:"Ore (vuote = intera giornata; obbligatorie per Recupero ore)"}),amsg=h("div",{class:"msg",style:"display:none"});
+  const ap=h("select"),am=h("select",{},...MOT.map(x=>h("option",{},x))),af=h("input",{type:"date"}),at=h("input",{type:"date"}),ah=h("input",{type:"number",step:"0.25",min:"0",placeholder:"Ore (vuote = intera giornata)"}),amsg=h("div",{class:"msg",style:"display:none"});
   const rlab=r=>r.type+(r.hrs?" · "+r.hrs+" h":"")+" · "+dd(r.from)+(r.to!==r.from?" → "+dd(r.to):"");
   P.r={n:h("div",{},
     h("div",{class:"card"},h("h2",{},"Richieste di assenza"),lr),
     h("div",{class:"card"},h("h2",{},"Inserisci un’assenza"),ap,am,h("div",{class:"mu"},"Dal"),af,h("div",{class:"mu"},"Al"),at,ah,
       h("button",{style:"width:100%;margin-top:8px",onclick:async()=>{const st=find(ap.value);
         if(!st||!af.value||!at.value||at.value<af.value)return msg(amsg,"Scegli persona e controlla le date","ko");
-        if(am.value==="Recupero ore"&&!(+ah.value>0))return msg(amsg,"Per il recupero indica quante ore","ko");
         try{await addDoc(collection(db,"requests"),{uid:st.id,name:st.name,type:am.value,from:af.value,to:at.value,hrs:ah.value?+ah.value:null,note:"inserita dal responsabile",status:"approvata",at:serverTimestamp()});ah.value="";msg(amsg,"Assenza inserita","ok")}
         catch(e){msg(amsg,"Errore: "+e.code,"ko")}}},"Inserisci"),amsg),
     h("div",{class:"card"},h("h2",{},"Calendario assenze"),h("div",{class:"bar"},monthInput()),cal,h("p",{class:"mu"},"Verde = ferie e festività soppresse · Arancione = permessi e visite · Rosso = malattia · Grigio = recupero ore"))),u(){
@@ -425,31 +434,31 @@ function admin(u){
     let all=[],exs=[];const ms=monthsOf(a,b);try{[all,exs]=await Promise.all([loadMonths(ms),loadExtras(ms)])}catch(e){pO.replaceChildren(h("p",{class:"msg ko"},"Errore nel caricamento"));return}
     const t0=a.getTime(),t1=b.getTime()+86399999,inr=all.filter(p=>{const x=pt(p);return x>=t0&&x<=t1}),bp=byPerson(inr),ka=ymd(a),kb=ymd(b);
     const people=S.staff.filter(s=>(pS.value==="*"||s.id===pS.value)&&(s.active||bp[s.id])).sort((p,q)=>p.name.localeCompare(q.name));
-    const R=people.map(s=>{const t=period(s,a,b,bp[s.id]?bp[s.id].l:[],S.reqs),x=extraSums(s.id,t.rows,exs.filter(e=>e.day>=ka&&e.day<=kb));return {s,t,str:x.str,rec:x.rec,ru:recUsed(s,S.reqs,a,b)}});
-    const T=R.reduce((q,x)=>({due:q.due+x.t.due,just:q.just+x.t.just,worked:q.worked+x.t.worked,diff:q.diff+x.t.diff,str:q.str+x.str,rec:q.rec+x.rec,ru:q.ru+x.ru}),{due:0,just:0,worked:0,diff:0,str:0,rec:0,ru:0});
+    const R=people.map(s=>{const t=period(s,a,b,bp[s.id]?bp[s.id].l:[],S.reqs),x=extraSums(s.id,t.rows,exs.filter(e=>e.day>=ka&&e.day<=kb));return {s,t,str:x.str}});
+    const T=R.reduce((q,x)=>({due:q.due+x.t.due,worked:q.worked+x.t.worked,pos:q.pos+x.t.pos,usu:q.usu+x.t.usu,alt:q.alt+x.t.alt,diff:q.diff+x.t.diff,str:q.str+x.str}),{due:0,worked:0,pos:0,usu:0,alt:0,diff:0,str:0});
     const per="dal "+a.toLocaleDateString("it-IT")+" al "+b.toLocaleDateString("it-IT");
-    const mk=c=>h("table",{class:c},h("thead",{},h("tr",{},...["Dipendente","Qualifica","Nomina","Previste","Assenze","Fatte","Differenza","Straord.","A recupero","Rec. usato"].map(x=>h("th",{},x)))),
-      h("tbody",{},...R.map(x=>h("tr",{},h("td",{},x.s.name),h("td",{},x.s.qual||""),h("td",{},x.s.nomina||""),h("td",{},Hm(x.t.due)),h("td",{},Hm(x.t.just)),h("td",{},Hm(x.t.worked)),h("td",{class:cls(x.t.diff,x.t.due)},HSm(x.t.diff)),h("td",{},Hm(x.str)),h("td",{},Hm(x.rec)),h("td",{},Hm(x.ru)))),
-        h("tr",{},h("td",{colspan:"3"},h("b",{},"Totale")),...[Hm(T.due),Hm(T.just),Hm(T.worked),HSm(T.diff),Hm(T.str),Hm(T.rec),Hm(T.ru)].map(v=>h("td",{},h("b",{},v))))));
+    const mk=c=>h("table",{class:c},h("thead",{},h("tr",{},...["Dipendente","Qualifica","Previste","Fatte","In più","Usufruite","Ritardi e altro","Differenza","Straord."].map(x=>h("th",{},x)))),
+      h("tbody",{},...R.map(x=>h("tr",{},h("td",{},x.s.name),h("td",{},x.s.qual||""),h("td",{},Hm(x.t.due)),h("td",{},Hm(x.t.worked)),h("td",{},Hm(x.t.pos)),h("td",{},Hm(x.t.usu)),h("td",{},Hm(x.t.alt)),h("td",{class:cls(x.t.diff,1)},HSm(x.t.diff)),h("td",{},Hm(x.str)))),
+        h("tr",{},h("td",{colspan:"2"},h("b",{},"Totale")),...[Hm(T.due),Hm(T.worked),Hm(T.pos),Hm(T.usu),Hm(T.alt),HSm(T.diff),Hm(T.str)].map(v=>h("td",{},h("b",{},v))))));
     const sheet=()=>h("div",{style:"font-family:system-ui,sans-serif"},h("div",{style:"display:flex;gap:8px;align-items:center"},brand.logo?h("img",{src:brand.logo,style:"height:14mm"}):null,h("h2",{style:"margin:0"},brand.name||"Timbrature")),
       h("h3",{},"Riepilogo ore di servizio — "+per),mk("pt"),
-      h("p",{style:"font-size:9pt"},"Differenza = ore fatte − ore previste, calcolata giorno per giorno (tolleranza di "+TOL+" minuti sull’entrata e sull’uscita). Previste = ore di servizio al netto di assenze giustificate e festività. + ore in più, − ore in meno."),
+      h("p",{style:"font-size:9pt"},"Ogni giorno: ore fatte − ore di servizio. In più = ore fatte oltre l’orario; Usufruite = permessi brevi e giorni di riposo (recupero ore); Ritardi e altro = ore mancanti non giustificate. Differenza = In più − Usufruite − Ritardi (tolleranza di "+TOL+" minuti su entrata e uscita). Ferie, malattia e permessi retribuiti non sono ore da fare."),
       h("p",{style:"font-size:9pt"},"Stampato il "+new Date().toLocaleString("it-IT")));
     pO.replaceChildren(h("p",{class:"mu"},per),h("div",{class:"sc"},mk("")),h("button",{style:"width:100%;margin-top:10px",onclick:()=>printNode(sheet())},"Stampa / salva PDF"));
   }
   P.o={n:h("div",{},
     h("div",{class:"card"},h("h2",{},"Stampa ore (previste / fatte)"),h("div",{class:"mu"},"Periodo"),pT,pD,pE,pL,h("div",{class:"mu"},"Dipendente"),pS,h("button",{style:"width:100%;margin-top:8px",onclick:makeReport},"Crea riepilogo"),pO),
-    h("div",{class:"card"},h("h2",{},"Ore del mese"),h("div",{class:"bar"},monthInput(),h("button",{onclick:exportXlsx},"Excel")),h("div",{class:"sc"},tbl(["Nome","Giorni","Fatte","Previste","Diff.","Ritardi","Anticipi","Straord.","Recup."],ob)),
-      h("p",{class:"mu"},"Differenza calcolata giorno per giorno. Ritardi e anticipi contano solo oltre i "+TOL+" minuti di tolleranza.")),
+    h("div",{class:"card"},h("h2",{},"Ore del mese"),h("div",{class:"bar"},monthInput(),h("button",{onclick:exportXlsx},"Excel")),h("div",{class:"sc"},tbl(["Nome","Giorni","Fatte","Previste","In più","Usufruite","Ritardi/altro","Diff.","Straord."],ob)),
+      h("p",{class:"mu"},"Differenza = ore in più − ore usufruite (permessi brevi, giorni di riposo) − ritardi. Tolleranza di "+TOL+" minuti su entrata e uscita.")),
     h("div",{class:"card"},h("h2",{},"Report per plesso"),h("div",{class:"sc"},tbl(["Plesso","Persone","Timbr.","Ore"],sb)))),
     u(){const R=mreport(),cp=pS.value;
       pS.replaceChildren(h("option",{value:"*"},"Tutti i dipendenti"),...S.staff.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(s=>h("option",{value:s.id},s.name)));if(cp)pS.value=cp;lab();
-      ob.replaceChildren(...R.g.map(x=>h("tr",{},h("td",{},x.name),h("td",{},String(x.days)),h("td",{},Hm(x.worked)),h("td",{},x.due?Hm(x.due):"–"),h("td",{class:cls(x.diff,x.due)},x.due||x.worked?HSm(x.diff):"–"),h("td",{},String(x.late||"–")),h("td",{},String(x.early||"–")),h("td",{},x.str?Hm(x.str):"–"),h("td",{},x.rec?Hm(x.rec):"–"))));
+      ob.replaceChildren(...R.g.map(x=>h("tr",{},h("td",{},x.name),h("td",{},String(x.days)),h("td",{},Hm(x.worked)),h("td",{},x.due?Hm(x.due):"–"),h("td",{},x.pos?Hm(x.pos):"–"),h("td",{},x.usu?Hm(x.usu):"–"),h("td",{},x.alt?Hm(x.alt):"–"),h("td",{class:x.diff>0?"pos":x.diff<0?"neg":""},x.due||x.worked?HSm(x.diff):"–"),h("td",{},x.str?Hm(x.str):"–"))));
       sb.replaceChildren(...R.s.map(x=>h("tr",{},...[x.site,x.people,x.n,fh(x.ms)].map(v=>h("td",{},String(v))))))}};
 
   /* ---- Ore in più: motivazione + straordinario/recupero ---- */
   const lx=h("div"),sx=h("div",{class:"mu"});
-  const rowX=(s,r,e)=>{const mo=h("input",{placeholder:"Motivazione (es. sostituzione collega, riunione)",value:e?e.motivo||"":""}),de=h("select",{},h("option",{value:""},"— Scegli —"),h("option",{value:"straordinario"},"Straordinario"),h("option",{value:"recupero"},"A recupero"));de.value=e?e.dest||"":"";const m=h("div",{class:"mu"});
+  const rowX=(s,r,e)=>{const mo=h("input",{placeholder:"Motivazione (es. sostituzione collega, riunione)",value:e?e.motivo||"":""}),de=h("select",{},h("option",{value:""},"— Scegli —"),h("option",{value:"straordinario"},"Straordinario (pagato, esce dal saldo)"),h("option",{value:"recupero"},"A recupero (resta nel saldo)"));de.value=e?e.dest||"":"";const m=h("div",{class:"mu"});
     return h("div",{class:"item",style:"flex-direction:column;align-items:stretch"},h("div",{class:"bar",style:"margin:0"},h("b",{},s.name),h("span",{class:"pos"},"+"+Hm(r.diff))),h("div",{class:"mu"},dd(r.k)+" · fatte "+Hm(r.worked)+" su "+Hm(r.due)+" previste"),mo,de,
       h("button",{class:"g",onclick:async()=>{if(!de.value||mo.value.trim().length<3){m.textContent="Scegli la destinazione e scrivi la motivazione";return}
         try{await setDoc(doc(db,"extras",s.id+"_"+r.k),{uid:s.id,name:s.name,day:r.k,m:r.k.slice(0,7),min:r.diff,motivo:mo.value.trim(),dest:de.value});m.textContent="Salvato"}catch(x){m.textContent="Errore: "+x.code}}},"Salva"),m)};
@@ -501,15 +510,14 @@ function admin(u){
       const c=cur(),now=new Date(),y=now.getFullYear(),ja=new Date(y,0,1),ms=monthsOf(ja,now);
       let pun=[],exs=[];try{[pun,exs]=await Promise.all([loadMonths(ms,id),loadExtras(ms,id)])}catch(e){}
       pun.sort((p,q)=>pt(p)-pt(q));
-      const t=period(c,ja,now,pun,S.reqs),x=extraSums(id,t.rows,exs),ru=recUsed(c,S.reqs,ja,now),B=balances(c,S.reqs,y),u1=ty=>used(c,S.reqs,y,ty),rec=(c.oreRes||0)*60+x.rec-ru;
-      const vi=u1("Visita specialistica");
+      const t=period(c,ja,now,pun,S.reqs),x=extraSums(id,t.rows,exs),B=balances(c,S.reqs,y),u1=ty=>used(c,S.reqs,y,ty),sd=(c.oreRes||0)*60+t.diff-x.str,vi=u1("Visita specialistica");
       box.replaceChildren(h("h2",{},"Calcolo automatico "+y),
         h("div",{class:"stats"},stat(B.rest==null?"?":B.rest+" gg","Ferie "+y),stat(B.restA+" gg","Ferie anno prec."),stat(B.restF+" gg","Fest. soppresse")),
         h("p",{class:"mu"},"Ferie: "+(B.sp==null?"?":B.sp)+" spettanti − "+B.g+" godute · Anno prec.: "+B.res+" residue − "+B.ga+" godute · Festività soppresse: "+B.fs+" − "+B.gf),
-        h("div",{class:"stats"},stat(Hm(t.due),"Ore previste"),stat(Hm(t.worked),"Ore fatte"),stat(HSm(t.diff),"Differenza")),
-        h("div",{class:"stats"},stat(Hm(x.str),"Straordinario"),stat(Hm(x.rec),"A recupero (maturate)"),stat(Hm(ru),"Recupero usato")),
-        h("div",{class:"stats"},stat(HSm(rec),"Ore a recupero disponibili")),
-        h("p",{class:"mu"},"Disponibili = ore residue anno precedente ("+(c.oreRes||0)+" h) + ore a recupero maturate − recupero usato. Assenze in quest’anno: malattia "+u1("Malattia").n+" gg · visite "+vi.n+" gg + "+vi.hrs+" h · permessi personali "+u1("Permesso retribuito motivi personali").n+" gg · L.104 "+u1("Permesso Legge 104").n+" gg."))}
+        h("div",{class:"stats"},stat(Hm(t.due),"Ore previste"),stat(Hm(t.worked),"Ore fatte")),
+        h("div",{class:"stats"},stat(Hm(t.pos),"Ore in più"),stat(Hm(t.usu),"Usufruite"),stat(Hm(t.alt),"Ritardi/altro")),
+        h("div",{class:"stats"},stat(HSm(t.diff),"Differenza anno"),stat(Hm(x.str),"Straord. pagato"),stat(HSm(sd),"Saldo ore")),
+        h("p",{class:"mu"},"Saldo ore = residue anno precedente ("+(c.oreRes||0)+" h) + ore in più − usufruite (permessi brevi, giorni di riposo) − ritardi − straordinario pagato. Assenze quest’anno: malattia "+u1("Malattia").n+" gg · visite "+vi.n+" gg + "+vi.hrs+" h · permessi personali "+u1("Permesso retribuito motivi personali").n+" gg · L.104 "+u1("Permesso Legge 104").n+" gg."))}
     P.sc.n=h("div",{},
       h("div",{class:"card"},h("div",{class:"bar"},h("h2",{style:"margin:0"},"Scheda dipendente"),h("button",{class:"g",onclick:()=>sh.go("s")},"‹ Elenco")),
         h("div",{class:"mu"},"Nome"),nm1,h("div",{class:"mu"},"Qualifica"),ql,h("div",{class:"mu"},"Tipo di nomina"),no,
